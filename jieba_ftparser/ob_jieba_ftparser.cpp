@@ -264,7 +264,9 @@ int plugin_init(ObPluginParamPtr plugin)
     .scan_end          = ftparser_scan_end,
     .next_token        = ftparser_next_token,
     .get_add_word_flag = ftparser_get_add_word_flag,
+#if OBP_FTPARSER_INTERFACE_VERSION >= OBP_MAKE_VERSION(0, 2, 0)
     .is_charset_supported = ftparser_is_charset_supported
+#endif
   };
 
   ret = OBP_REGISTER_FTPARSER(plugin,
