@@ -1,14 +1,7 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.22)
-
 SET(PLUGIN_NAME jieba_ftparser)
 
 SET(SOURCES
     ob_jieba_ftparser.cpp)
-
-PROJECT(${PLUGIN_NAME}
-        DESCRIPTION "OceanBase jieba ftparser plugin demo"
-        HOMEPAGE_URL "https://open.oceanbase.com/"
-        LANGUAGES CXX C ASM)
 
 SET(DICT_RESOURCES "")
 SET(_DICT_RESOURCE_ITEMS)
@@ -40,3 +33,15 @@ TARGET_INCLUDE_DIRECTORIES (${PLUGIN_NAME} PRIVATE
 			                      ${CMAKE_CURRENT_SOURCE_DIR}/limonp/include)
 # TARGET_LINK_LIBRARIES (${PLUGIN_NAME} library1 library2)
 # TARGET_XX (${PLUGIN_NAME} xxx)
+SET_TARGET_PROPERTIES (${PLUGIN_NAME} PROPERTIES
+                       VERSION        ${PROJECT_VERSION}
+                       SOVERSION      ${PROJECT_VERSION_MAJOR})
+
+string(REPLACE "_" "-" COMPONENT_NAME ${PLUGIN_NAME})
+INSTALL (TARGETS ${PLUGIN_NAME}
+         COMPONENT ${COMPONENT_NAME})
+
+cpack_add_component(
+  ${COMPONENT_NAME}
+  DISPLAY_NAME "Jieba Fulltext Parsing Plugin"
+  DESCRIPTION  "Jieba full-text parsing plugin for OceanBase.")
