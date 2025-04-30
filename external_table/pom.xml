@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.oceanbase.external</groupId>
+    <artifactId>external-plugin-root</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>api</module>
+        <module>plugin/jdbc</module>
+        <module>plugin/mysql</module>
+        <module>internal</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <minimalJavaBuildVersion>1.8</minimalJavaBuildVersion>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <dep.arrow.version>17.0.0</dep.arrow.version>
+        <dep.adbc.version>0.14.0</dep.adbc.version>
+        <dep.mysql.connector.version>8.3.0</dep.mysql.connector.version>
+        <dep.slf4j.api.version>2.0.16</dep.slf4j.api.version>
+        <dep.logback.classic.version>1.3.14</dep.logback.classic.version>
+        <version.maven-javadoc-plugin>3.11.1</version.maven-javadoc-plugin>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Arrow -->
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-bom</artifactId>
+                <version>${dep.arrow.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-jdbc</artifactId>
+                <version>${dep.arrow.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-memory-netty</artifactId>
+                <version>${dep.arrow.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.arrow.adbc</groupId>
+                <artifactId>adbc-driver-jdbc</artifactId>
+                <version>${dep.adbc.version}</version>
+            </dependency>
+
+            <!-- JDBC Drivers -->
+            <dependency>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>${dep.mysql.connector.version}</version>
+            </dependency>
+
+            <!-- Logging -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${dep.slf4j.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${dep.logback.classic.version}</version>
+            </dependency>
+
+            <!-- OceanBase External Plugin -->
+            <dependency>
+                <groupId>com.oceanbase.external</groupId>
+                <artifactId>external-plugin-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oceanbase.external</groupId>
+                <artifactId>external-plugin-jdbc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oceanbase.external</groupId>
+                <artifactId>external-plugin-mysql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oceanbase.external</groupId>
+                <artifactId>external-plugin-internal</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Testing -->
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.27.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>5.12.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
+message(STATUS "PROJECT_VERSION is " ${PROJECT_VERSION})
 if (NOT DEFINED PROJECT_VERSION)
   set(PROJECT_VERSION 0.2.0)
 endif()
