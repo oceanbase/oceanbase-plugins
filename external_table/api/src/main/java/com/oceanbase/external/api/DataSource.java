@@ -56,8 +56,8 @@ public interface DataSource {
     /**
      * Create a scanner.
      * Scanner generate a stream of data.
-     * @param extraParameters Extra parameters about this scanning. Refer to {@link TableScanParameter#of(Map, Map)}
+     * @param scanParameters Extra parameters about this scanning. Refer to {@link TableScanParameter#of(Map, Map)}
      *                        for more details.
      */
-    ArrowReader createScanner(Map<String, Object> extraParameters) throws IOException;
+    ArrowReader createScanner(Map<String, Object> scanParameters) throws IOException;
 }
