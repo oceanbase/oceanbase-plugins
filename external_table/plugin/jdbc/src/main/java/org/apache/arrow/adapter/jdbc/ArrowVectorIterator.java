@@ -121,15 +121,15 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
 
             root.setRowCount(readRowCount);
         } catch (Throwable e) {
+            for (FieldVector vector : root.getFieldVectors()) {
+                if (vector instanceof BaseFixedWidthVector) {
+                    BaseFixedWidthVector fixedWidthVector = (BaseFixedWidthVector) vector;
+                    ArrowBuf arrowBuf = fixedWidthVector.getValidityBuffer();
+                    logger.info("(ArrowVectorIterator in Exception) vector ValidityBuffer: {}", arrowBuf.toString());
+                }
+            }
             compositeConsumer.close();
             if (e instanceof JdbcConsumerException) {
-                for (FieldVector vector : root.getFieldVectors()) {
-                    if (vector instanceof BaseFixedWidthVector) {
-                        BaseFixedWidthVector fixedWidthVector = (BaseFixedWidthVector) vector;
-                        ArrowBuf arrowBuf = fixedWidthVector.getValidityBuffer();
-                        logger.info("(ArrowVectorIterator in Exception) vector ValidityBuffer: {}", arrowBuf.toString());
-                    }
-                }
                 throw (JdbcConsumerException) e;
             } else {
                 throw new RuntimeException("Error occurred while consuming data.", e);
