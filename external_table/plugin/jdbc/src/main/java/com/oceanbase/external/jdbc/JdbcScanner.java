@@ -23,6 +23,8 @@ import org.apache.arrow.adapter.jdbc.ArrowVectorIterator;
 import org.apache.arrow.adapter.jdbc.JdbcToArrow;
 import org.apache.arrow.adapter.jdbc.JdbcToArrowConfig;
 import org.apache.arrow.adapter.jdbc.JdbcToArrowUtils;
+import org.apache.arrow.memory.ArrowBuf;
+import org.apache.arrow.vector.BaseFixedWidthVector;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.VectorUnloader;
@@ -67,6 +69,13 @@ public class JdbcScanner extends ArrowReader {
     public boolean loadNextBatch() throws IOException {
         if (!delegate.hasNext()) return false;
         try (final VectorSchemaRoot root = delegate.next()) {
+            for (FieldVector vector : root.getFieldVectors()) {
+                if (vector instanceof BaseFixedWidthVector) {
+                    BaseFixedWidthVector fixedWidthVector = (BaseFixedWidthVector) vector;
+                    ArrowBuf arrowBuf = fixedWidthVector.getValidityBuffer();
+                    logger.info("vector valididyBuffer: {}", arrowBuf.toString());
+                }
+            }
             final VectorUnloader unloader = new VectorUnloader(root);
             try (final ArrowRecordBatch recordBatch = unloader.getRecordBatch()) {
                 long thisBytesRead = recordBatch.computeBodyLength();

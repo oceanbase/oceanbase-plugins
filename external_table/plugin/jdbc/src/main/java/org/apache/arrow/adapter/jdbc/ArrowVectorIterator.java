@@ -22,19 +22,26 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Iterator;
+
+import com.oceanbase.external.jdbc.JdbcScanner;
 import org.apache.arrow.adapter.jdbc.consumer.CompositeJdbcConsumer;
 import org.apache.arrow.adapter.jdbc.consumer.JdbcConsumer;
 import org.apache.arrow.adapter.jdbc.consumer.exceptions.JdbcConsumerException;
+import org.apache.arrow.memory.ArrowBuf;
 import org.apache.arrow.util.AutoCloseables;
 import org.apache.arrow.util.Preconditions;
+import org.apache.arrow.vector.BaseFixedWidthVector;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Schema;
 import org.apache.arrow.vector.util.ValueVectorUtility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** VectorSchemaRoot iterator for partially converting JDBC data. */
 public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoCloseable {
+    private final static Logger logger = LoggerFactory.getLogger(ArrowVectorIterator.class);
 
     private final ResultSet resultSet;
     private final JdbcToArrowConfig config;
@@ -116,6 +123,13 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
         } catch (Throwable e) {
             compositeConsumer.close();
             if (e instanceof JdbcConsumerException) {
+                for (FieldVector vector : root.getFieldVectors()) {
+                    if (vector instanceof BaseFixedWidthVector) {
+                        BaseFixedWidthVector fixedWidthVector = (BaseFixedWidthVector) vector;
+                        ArrowBuf arrowBuf = fixedWidthVector.getValidityBuffer();
+                        logger.info("(ArrowVectorIterator in Exception) vector ValidityBuffer: {}", arrowBuf.toString());
+                    }
+                }
                 throw (JdbcConsumerException) e;
             } else {
                 throw new RuntimeException("Error occurred while consuming data.", e);
@@ -129,6 +143,14 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
             root = VectorSchemaRoot.create(schema, config.getAllocator());
             if (config.getTargetBatchSize() != JdbcToArrowConfig.NO_LIMIT_BATCH_SIZE) {
                 ValueVectorUtility.preAllocate(root, config.getTargetBatchSize());
+                logger.info("pre allocate vectors");
+                for (FieldVector vector : root.getFieldVectors()) {
+                    if (vector instanceof BaseFixedWidthVector) {
+                        BaseFixedWidthVector fixedWidthVector = (BaseFixedWidthVector) vector;
+                        ArrowBuf arrowBuf = fixedWidthVector.getValidityBuffer();
+                        logger.info("(ArrowVectorIterator) vector ValidityBuffer: {}", arrowBuf.toString());
+                    }
+                }
             }
         } catch (Throwable e) {
             if (root != null) {
