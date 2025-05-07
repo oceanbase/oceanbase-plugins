@@ -112,7 +112,7 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
                         for (int i = 0; i < consumers.length; i++) {
                             FieldVector vec = root.getVector(i);
                             currentBufferSize += vec.getBufferSizeFor(readRowCount);
-                            logger.info("read row. ValidityBuffer: {}. row count: {}", vec.getValidityBuffer().toString(), readRowCount);
+                            logger.info("read row. ValidityBuffer: {}. row count: {}. vector type: {}", vec.getValidityBuffer().toString(), readRowCount, vec.getClass().toString());
                         }
                     } else {
                         readComplete = true;
@@ -124,7 +124,7 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
         } catch (Throwable e) {
             for (FieldVector vector : root.getFieldVectors()) {
                 ArrowBuf arrowBuf = vector.getValidityBuffer();
-                logger.info("(ArrowVectorIterator in Exception) vector ValidityBuffer: {}, readRowCount: {}", arrowBuf.toString(), readRowCount);
+                logger.info("(ArrowVectorIterator in Exception) vector ValidityBuffer: {}, readRowCount: {}, vector type: {}", arrowBuf.toString(), readRowCount, vector.getClass());
             }
             compositeConsumer.close();
             if (e instanceof JdbcConsumerException) {
@@ -144,7 +144,7 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
                 logger.info("pre allocate vectors");
                 for (FieldVector vector : root.getFieldVectors()) {
                     ArrowBuf arrowBuf = vector.getValidityBuffer();
-                    logger.info("(ArrowVectorIterator) vector ValidityBuffer: {}", arrowBuf.toString());
+                    logger.info("(ArrowVectorIterator) vector ValidityBuffer: {}, vector type: {}", arrowBuf.toString(), vector.getClass());
                 }
             }
         } catch (Throwable e) {

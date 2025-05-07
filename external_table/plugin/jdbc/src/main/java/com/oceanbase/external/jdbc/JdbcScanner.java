@@ -68,23 +68,19 @@ public class JdbcScanner extends ArrowReader {
     @Override
     public boolean loadNextBatch() throws IOException {
         if (!delegate.hasNext()) return false;
-        try (final VectorSchemaRoot root = delegate.next()) {
-            for (FieldVector vector : root.getFieldVectors()) {
-                if (vector instanceof BaseFixedWidthVector) {
-                    BaseFixedWidthVector fixedWidthVector = (BaseFixedWidthVector) vector;
-                    ArrowBuf arrowBuf = fixedWidthVector.getValidityBuffer();
-                    logger.info("vector valididyBuffer: {}", arrowBuf.toString());
-                }
+        final VectorSchemaRoot root = delegate.next();
+        for (FieldVector vector : root.getFieldVectors()) {
+            ArrowBuf arrowBuf = vector.getValidityBuffer();
+            logger.info("vector valididyBuffer: {}", arrowBuf.toString());
+        }
+        final VectorUnloader unloader = new VectorUnloader(root);
+        try (final ArrowRecordBatch recordBatch = unloader.getRecordBatch()) {
+            long thisBytesRead = recordBatch.computeBodyLength();
+            bytesRead += thisBytesRead;
+            if (thisBytesRead >= (2L * 1024 * 1024 * 1024)) {
+                logger.info("read more than 2G for one batch: {}", thisBytesRead);
             }
-            final VectorUnloader unloader = new VectorUnloader(root);
-            try (final ArrowRecordBatch recordBatch = unloader.getRecordBatch()) {
-                long thisBytesRead = recordBatch.computeBodyLength();
-                bytesRead += thisBytesRead;
-                if (thisBytesRead >= (2L * 1024 * 1024 * 1024)) {
-                    logger.info("read more than 2G for one batch: {}", thisBytesRead);
-                }
-                loadRecordBatch(recordBatch);
-            }
+            loadRecordBatch(recordBatch);
         }
         return true;
     }
