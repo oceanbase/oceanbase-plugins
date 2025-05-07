@@ -41,8 +41,6 @@ import org.slf4j.LoggerFactory;
 
 /** VectorSchemaRoot iterator for partially converting JDBC data. */
 public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoCloseable {
-    private final static Logger logger = LoggerFactory.getLogger(ArrowVectorIterator.class);
-
     private final ResultSet resultSet;
     private final JdbcToArrowConfig config;
 
@@ -112,7 +110,6 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
                         for (int i = 0; i < consumers.length; i++) {
                             FieldVector vec = root.getVector(i);
                             currentBufferSize += vec.getBufferSizeFor(readRowCount);
-                            logger.info("read row. ValidityBuffer: {}. row count: {}. vector type: {}", vec.getValidityBuffer().toString(), readRowCount, vec.getClass().toString());
                         }
                     } else {
                         readComplete = true;
@@ -122,10 +119,6 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
 
             root.setRowCount(readRowCount);
         } catch (Throwable e) {
-            for (FieldVector vector : root.getFieldVectors()) {
-                ArrowBuf arrowBuf = vector.getValidityBuffer();
-                logger.info("(ArrowVectorIterator in Exception) vector ValidityBuffer: {}, readRowCount: {}, vector type: {}", arrowBuf.toString(), readRowCount, vector.getClass());
-            }
             compositeConsumer.close();
             if (e instanceof JdbcConsumerException) {
                 throw (JdbcConsumerException) e;
@@ -141,11 +134,6 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
             root = VectorSchemaRoot.create(schema, config.getAllocator());
             if (config.getTargetBatchSize() != JdbcToArrowConfig.NO_LIMIT_BATCH_SIZE) {
                 ValueVectorUtility.preAllocate(root, config.getTargetBatchSize());
-                logger.info("pre allocate vectors");
-                for (FieldVector vector : root.getFieldVectors()) {
-                    ArrowBuf arrowBuf = vector.getValidityBuffer();
-                    logger.info("(ArrowVectorIterator) vector ValidityBuffer: {}, vector type: {}", arrowBuf.toString(), vector.getClass());
-                }
             }
         } catch (Throwable e) {
             if (root != null) {

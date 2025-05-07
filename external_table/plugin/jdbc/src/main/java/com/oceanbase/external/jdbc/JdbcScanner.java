@@ -68,11 +68,9 @@ public class JdbcScanner extends ArrowReader {
     @Override
     public boolean loadNextBatch() throws IOException {
         if (!delegate.hasNext()) return false;
+
+        // root will be reused, so we can't close it
         final VectorSchemaRoot root = delegate.next();
-        for (FieldVector vector : root.getFieldVectors()) {
-            ArrowBuf arrowBuf = vector.getValidityBuffer();
-            logger.info("vector valididyBuffer: {}", arrowBuf.toString());
-        }
         final VectorUnloader unloader = new VectorUnloader(root);
         try (final ArrowRecordBatch recordBatch = unloader.getRecordBatch()) {
             long thisBytesRead = recordBatch.computeBodyLength();
