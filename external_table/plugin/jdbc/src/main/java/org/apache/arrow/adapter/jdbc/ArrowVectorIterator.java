@@ -93,8 +93,8 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
 
     private void consumeData(VectorSchemaRoot root) {
         // consume data
+        int readRowCount = 0;
         try {
-            int readRowCount = 0;
             long currentBufferSize = 0;
             if (targetBatchSize == JdbcToArrowConfig.NO_LIMIT_BATCH_SIZE) {
                 while (resultSet.next()) {
@@ -112,6 +112,7 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
                         for (int i = 0; i < consumers.length; i++) {
                             FieldVector vec = root.getVector(i);
                             currentBufferSize += vec.getBufferSizeFor(readRowCount);
+                            logger.info("read row. ValidityBuffer: {}. row count: {}", vec.getValidityBuffer().toString(), readRowCount);
                         }
                     } else {
                         readComplete = true;
@@ -122,11 +123,8 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
             root.setRowCount(readRowCount);
         } catch (Throwable e) {
             for (FieldVector vector : root.getFieldVectors()) {
-                if (vector instanceof BaseFixedWidthVector) {
-                    BaseFixedWidthVector fixedWidthVector = (BaseFixedWidthVector) vector;
-                    ArrowBuf arrowBuf = fixedWidthVector.getValidityBuffer();
-                    logger.info("(ArrowVectorIterator in Exception) vector ValidityBuffer: {}", arrowBuf.toString());
-                }
+                ArrowBuf arrowBuf = vector.getValidityBuffer();
+                logger.info("(ArrowVectorIterator in Exception) vector ValidityBuffer: {}, readRowCount: {}", arrowBuf.toString(), readRowCount);
             }
             compositeConsumer.close();
             if (e instanceof JdbcConsumerException) {
@@ -145,11 +143,8 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
                 ValueVectorUtility.preAllocate(root, config.getTargetBatchSize());
                 logger.info("pre allocate vectors");
                 for (FieldVector vector : root.getFieldVectors()) {
-                    if (vector instanceof BaseFixedWidthVector) {
-                        BaseFixedWidthVector fixedWidthVector = (BaseFixedWidthVector) vector;
-                        ArrowBuf arrowBuf = fixedWidthVector.getValidityBuffer();
-                        logger.info("(ArrowVectorIterator) vector ValidityBuffer: {}", arrowBuf.toString());
-                    }
+                    ArrowBuf arrowBuf = vector.getValidityBuffer();
+                    logger.info("(ArrowVectorIterator) vector ValidityBuffer: {}", arrowBuf.toString());
                 }
             }
         } catch (Throwable e) {
