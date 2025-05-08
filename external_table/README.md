@@ -22,7 +22,7 @@ alter system set ob_java_home='`/java/home/path`';
 -- 设置一些Java运行时选项，可以是一些调试选项。
 -- 可以增加自己的选项，但是最少包含下面几个选项。
 -- 可以使用该选项配置 CLASSPATH，比如 -Djava.class.path=/java/class/path1:/java/class/path2
-alter system set ob_java_opts='-XX:-CriticalJNINatives -Djdk.lang.processReaperUseDefaultStackSize=true --add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED';
+alter system set ob_java_opts='-XX:-CriticalJNINatives -Djdk.lang.processReaperUseDefaultStackSize=true --add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED -Darrow.allocation.manager.type=Netty';
 
 -- 设置 OceanBase 外表插件jar包目录。只需要设置目录，不需要写jar包名称，OceanBase 会自动展开目录下的jar包。
 alter system set ob_java_connector_path='/jdbc/plugin/jar/package/directory';
@@ -206,6 +206,10 @@ external\$tablecol1\$a 中 external\$tablecol 是固定前缀，接着是列序�
 Java 程序以抛异常的形式返回异常，但是当前OceanBase并没有将异常信息转换为用户友好的信息。因此当Java插件抛出异常后，用户收到的错误信息并不直观，需要通过搜索日志来排查错误。
 最常见的Java 插件错误信息：
 ERROR 11053 (HY000): unexpected error for jni
+
+#### 时间戳类型怎么处理的
+时间戳，timestamp 类型，与其它的日期时间字段不同，通过客户端获取相关信息时，会处理时区，而且在数据源和OceanBase侧都会处理时区信息，因此比较繁琐。
+我们这里在获取时间戳信息时，将时区设置为 UTC 时区，而OceanBase侧，取决于用户的时区配置。
 
 ## 当前有哪些插件
 当前实现了三个插件，分别叫做 `java`、`jdbc`，`mysql`。
