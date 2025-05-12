@@ -43,7 +43,7 @@ public class QueryBuilder
      * @param tableScanParameter contains the information about the query.
      * @return The Query SQL String
      */
-    public String buildSelectQuery(TableScanParameter tableScanParameter) {
+    public String buildSelectQuery(TableScanParameter tableScanParameter, JdbcConfig jdbcConfig) {
         StringBuilder sb = new StringBuilder("SELECT ");
         if (tableScanParameter.getColumns().isEmpty()) {
             sb.append(1);
@@ -52,7 +52,7 @@ public class QueryBuilder
                     .map(columnName -> quoteString(columnName, identifierQuote))
                     .collect(Collectors.joining(",")));
         }
-        sb.append(" FROM ").append(quoteString(tableScanParameter.getTableName(), identifierQuote));
+        sb.append(" FROM ").append(quoteString(jdbcConfig.table, identifierQuote));
 
         /// The filters were created by {@link JdbcDataSource.pushdownFilters}
         List<String> filters = tableScanParameter.getSqlFilters();

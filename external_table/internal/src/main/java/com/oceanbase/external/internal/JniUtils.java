@@ -44,6 +44,9 @@ import java.util.stream.Collectors;
 
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
+/**
+ * This class is used by observer.
+ */
 @SuppressWarnings("unused")
 public class JniUtils {
     private final static Logger logger = LoggerFactory.getLogger(JniUtils.class);

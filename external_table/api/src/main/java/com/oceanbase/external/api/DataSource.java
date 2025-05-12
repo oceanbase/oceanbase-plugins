@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.ipc.ArrowReader;
 
 /**
@@ -31,16 +32,32 @@ import org.apache.arrow.vector.ipc.ArrowReader;
  * To relational databases, it means a table with specific database settings.
  * A DataSource must provide constructor that accept two parameters:
  * - allocate: org.apache.arrow.memory.BufferAllocator, which used by Arrow;
- * - properties: java.util.Map<String, String>, which provides information to create the DataSource.
+ * - parameters: String, which provides information to create the DataSource.
  */
-public interface DataSource {
+public abstract class DataSource {
+    protected final BufferAllocator allocator;
+    protected final String parameters;
+
+    public DataSource(BufferAllocator allocator, String parameters) {
+        this.allocator = allocator;
+        this.parameters = parameters;
+    }
+
     /**
-     * Describe which keys are sensitive.
-     * Sensitive keys will not be printed in the log and console.
-     * For example: password.
+     * Get a string that display the parameters
+     * You can mask content if sensitive.
+     * <p>
+     * For example:
+     * parameters = '{"table"="external","user"="root","password"="sensitive","jdbc_url"="jdbc://xxx"}'
+     * return:
+     * parameters = '{"table"="external","user"="root","password"="****","jdbc_url"="jdbc://xxx"}'
+     * </p>
+     * <p>
+     * Please don't use '\'' in the string.
+     * </p>
      */
     @SuppressWarnings("unused")
-    default List<String> sensitiveKeys() { return Collections.emptyList(); }
+    public String toDisplayString() { return parameters; }
 
     /**
      * Test which filter can be push down to external table data source
@@ -51,13 +68,13 @@ public interface DataSource {
      * The filter is generated in `logical plan` and pushdown to `execute plan` and maybe transfer over `observer` nodes.
      */
     @SuppressWarnings("unused")
-    default List<String> pushdownFilters(List<SqlFilter> filters) { return Collections.emptyList(); }
+    public List<String> pushdownFilters(List<SqlFilter> filters) { return Collections.emptyList(); }
 
     /**
      * Create a scanner.
      * Scanner generate a stream of data.
-     * @param scanParameters Extra parameters about this scanning. Refer to {@link TableScanParameter#of(Map, Map)}
+     * @param scanParameters Extra parameters about this scanning. Refer to {@link TableScanParameter#of(Map)}
      *                        for more details.
      */
-    ArrowReader createScanner(Map<String, Object> scanParameters) throws IOException;
+    public abstract ArrowReader createScanner(Map<String, Object> scanParameters) throws IOException;
 }

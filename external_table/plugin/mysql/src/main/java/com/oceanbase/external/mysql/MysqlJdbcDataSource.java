@@ -46,8 +46,8 @@ import static java.sql.Types.TIMESTAMP;
 public class MysqlJdbcDataSource extends JdbcDataSource {
     private final static String DRIVER_CLASS_NAME = "com.mysql.cj.jdbc.Driver";
 
-    public MysqlJdbcDataSource(BufferAllocator allocator, Map<String, String> properties) {
-        super(allocator, properties);
+    public MysqlJdbcDataSource(BufferAllocator allocator, String parameters) {
+        super(allocator, parameters);
     }
 
     @Override
@@ -84,11 +84,11 @@ public class MysqlJdbcDataSource extends JdbcDataSource {
             connProperties.put(PropertyKey.PASSWORD.getKeyName(), config.password);
         }
         defaultProperties.forEach((key, value) -> {
-            if (!config.jdbc_uri.contains(key)) {
+            if (!config.jdbc_url.contains(key)) {
                 connProperties.put(key, value);
             }
         });
-        return DriverManager.getConnection(config.jdbc_uri, connProperties);
+        return DriverManager.getConnection(config.jdbc_url, connProperties);
     }
 
     @Override

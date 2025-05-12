@@ -33,7 +33,9 @@ public class DataSourceFactory {
     private final static String PLUGIN_CLASS_KEY = "plugin_class";
 
     /// 'ob.' means this property is passed through oceanbase plugin adaptor not by user.
-    private final static String PLUGIN_NAME_KEY  = "ob.plugin_name";
+    private final static String PLUGIN_NAME_KEY  = "plugin_name";
+
+    private final static String PARAMETERS_KEY = "parameters";
 
     private final static Map<String, String> dataSources = new HashMap<String, String>(){{
             put("jdbc", "com.oceanbase.external.jdbc.JdbcDataSource");
@@ -58,12 +60,14 @@ public class DataSourceFactory {
                     dataSourceNames());
         }
 
+        String parameters = properties.getOrDefault(PARAMETERS_KEY, "");
+
         // plugin class can be a key or real class name.
         pluginClass = dataSources.getOrDefault(pluginClass, pluginClass);
         try {
             Class<?> dataSourceClass = Class.forName(pluginClass);
-            Constructor<?> constructor = dataSourceClass.getConstructor(BufferAllocator.class, Map.class);
-            return (DataSource) constructor.newInstance(JniUtils.getAllocator(), properties);
+            Constructor<?> constructor = dataSourceClass.getConstructor(BufferAllocator.class, String.class);
+            return (DataSource) constructor.newInstance(JniUtils.getAllocator(), parameters);
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException("failed to load data source class: " + pluginClass, ex);
         } catch (NoSuchMethodException ex) {
