@@ -109,6 +109,7 @@ public class ArrowVectorIterator implements Iterator<VectorSchemaRoot>, AutoClos
                         currentBufferSize = 0;
                         for (int i = 0; i < consumers.length; i++) {
                             FieldVector vec = root.getVector(i);
+                            vec.setValueCount(readRowCount);
                             currentBufferSize += vec.getBufferSizeFor(readRowCount);
                         }
                     } else {
