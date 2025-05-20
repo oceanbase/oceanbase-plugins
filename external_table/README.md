@@ -50,7 +50,7 @@ select * from oceanbase.gv$ob_plugins where type='EXTERNAL TABLE' and status='RE
 +--------------+----------+-------+--------+----------------+---------+-----------------+------------------+-------------------+-----------------------+---------------+-----------------------------------------------------+
 ```
 
-其中 java是Java外表插件的通用实现，jdbc是一个Java JDBC数据源，基于 java插件实现，MySQL是一个MySQL JDBC数据源，基于 jdbc插件实现。
+其中 'java' 是Java外表插件的通用实现，'jdbc' 是一个Java JDBC数据源，基于 'java' 插件实现，'mysql' 是一个MySQL JDBC数据源，基于 'jdbc' 插件实现。
 
 ## 如何构建
 首先确保你的环境上安装了Java开发环境，并且版本大于等于 11。
@@ -198,9 +198,9 @@ MySQL [test]> select * from lineitem;
 - [OpenJDK 下载页面](https://www.openlogic.com/openjdk-downloads?field_java_parent_version_target_id=406&field_operating_system_target_id=426&field_architecture_target_id=391&field_java_package_target_id=396)
 
 ### FAQ
-#### show create table 中看到的 external\$tablecol1\$a 是什么意思？
+#### show create table 中看到的 get_path(external\$filerow,'a') 是什么意思？
 外表中的字段都是生成的，用户不需要关心这个字符串。
-external\$tablecol1\$a 中 external\$tablecol 是固定前缀，接着是列序号，最后是列名称，插件使用此名称访问外表信息。
+get_path(external\$filerow,'a') 中 external\$filerow 是固定前缀，'a' 是列名。
 
 #### unexpected error for jni
 Java 程序以抛异常的形式返回异常，但是当前OceanBase并没有将异常信息转换为用户友好的信息。因此当Java插件抛出异常后，用户收到的错误信息并不直观，需要通过搜索日志来排查错误。

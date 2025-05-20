@@ -19,6 +19,7 @@
 
 package com.oceanbase.external.api;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;

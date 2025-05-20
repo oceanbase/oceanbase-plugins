@@ -53,7 +53,10 @@ public class JniUtils {
 
     private final static BufferAllocator allocator = new RootAllocator();
 
-    static BufferAllocator getAllocator() { return allocator; }
+    static BufferAllocator getAllocator(String name) {
+        //return allocator.newChildAllocator(name, 0, Long.MAX_VALUE);
+        return allocator;
+    }
 
     public static String getExceptionMessage(Throwable throwable, boolean backtrace) {
         if (null == throwable) {

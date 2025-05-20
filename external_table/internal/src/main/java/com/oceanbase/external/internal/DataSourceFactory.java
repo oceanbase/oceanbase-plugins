@@ -32,7 +32,6 @@ public class DataSourceFactory {
 
     private final static String PLUGIN_CLASS_KEY = "plugin_class";
 
-    /// 'ob.' means this property is passed through oceanbase plugin adaptor not by user.
     private final static String PLUGIN_NAME_KEY  = "plugin_name";
 
     private final static String PARAMETERS_KEY = "parameters";
@@ -67,12 +66,12 @@ public class DataSourceFactory {
         try {
             Class<?> dataSourceClass = Class.forName(pluginClass);
             Constructor<?> constructor = dataSourceClass.getConstructor(BufferAllocator.class, String.class);
-            return (DataSource) constructor.newInstance(JniUtils.getAllocator(), parameters);
+            return (DataSource) constructor.newInstance(JniUtils.getAllocator(pluginClass), parameters);
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException("failed to load data source class: " + pluginClass, ex);
         } catch (NoSuchMethodException ex) {
             throw new RuntimeException("data source class doesn't has a property constructor which needs 2 arguments: "
-                    + " BufferAllocator and Map", ex);
+                    + " BufferAllocator and String", ex);
         } catch (Exception ex) {
             throw new RuntimeException("failed to create data source instance", ex);
         }
