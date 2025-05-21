@@ -68,6 +68,11 @@
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${project.build.directory}/classes</outputDirectory>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.apache.arrow</groupId>
+                                    <artifactId>arrow-c-data</artifactId>
+                                    <overWrite>false</overWrite>
+                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>
