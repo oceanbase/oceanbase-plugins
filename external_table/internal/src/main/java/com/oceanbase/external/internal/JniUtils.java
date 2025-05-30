@@ -107,64 +107,76 @@ public class JniUtils {
     }
 
     public static List<SqlFilter> parseSqlFilterFromArrow(VectorSchemaRoot vectorSchemaRoot) {
-        if (vectorSchemaRoot == null) {
-            throw new IllegalArgumentException("vectorSchemaRoot is null");
-        }
+        try {
+            if (vectorSchemaRoot == null) {
+                throw new IllegalArgumentException("vectorSchemaRoot is null");
+            }
 
-        if (vectorSchemaRoot.getRowCount() != 1) {
-            throw new IllegalArgumentException("row count is not 1: " + vectorSchemaRoot.getRowCount());
-        }
+            if (vectorSchemaRoot.getRowCount() != 1) {
+                throw new IllegalArgumentException("row count is not 1: " + vectorSchemaRoot.getRowCount());
+            }
 
-        logger.trace("parse sql filter from arrow, vector schema root: schema={}, vector={}",
+            logger.trace("parse sql filter from arrow, vector schema root: schema={}, vector={}",
                 vectorSchemaRoot.getSchema(), vectorSchemaRoot.contentToTSVString());
 
-        ArrayList<SqlFilter> sqlFilters = new ArrayList<>();
-        ArrayList<SqlFilterExpr> exprList = new ArrayList<>();
-        List<Field> fields = vectorSchemaRoot.getSchema().getFields();
-        for (int i = 0; i < fields.size(); i++) {
-            FieldVector fieldVector = vectorSchemaRoot.getVector(i);
-            SqlFilterExpr.Type exprType = SqlFilterUtils.getExprType(fieldVector.getField().getName());
-            if (exprType == SqlFilterExpr.Type.FILTER) {
-                // this is a field to indicate one filter parsed done
-                if (exprList.isEmpty()) {
-                    throw new IllegalArgumentException("got empty expr list: " + vectorSchemaRoot.toString());
-                }
+            ArrayList<SqlFilter> sqlFilters = new ArrayList<>();
+            ArrayList<SqlFilterExpr> exprList = new ArrayList<>();
+            List<Field> fields = vectorSchemaRoot.getSchema().getFields();
+            for (int i = 0; i < fields.size(); i++) {
+                FieldVector fieldVector = vectorSchemaRoot.getVector(i);
+                SqlFilterExpr.Type exprType = SqlFilterUtils.getExprType(fieldVector.getField().getName());
+                if (exprType == SqlFilterExpr.Type.FILTER) {
+                    // this is a field to indicate one filter parsed done
+                    if (exprList.isEmpty()) {
+                        throw new IllegalArgumentException("got empty expr list: " + vectorSchemaRoot.toString());
+                    }
 
-                SqlFilterExpr lastExpr = exprList.get(exprList.size() - 1);
-                if (! (lastExpr instanceof PredicateSqlFilterExpr)) {
-                    throw new IllegalArgumentException("last expr should be compound expr but got " + lastExpr.getClass());
-                }
+                    SqlFilterExpr lastExpr = exprList.get(exprList.size() - 1);
+                    if (!(lastExpr instanceof PredicateSqlFilterExpr)) {
+                        throw new IllegalArgumentException("last expr should be compound expr but got " + lastExpr.getClass());
+                    }
 
-                sqlFilters.add(new SqlFilter((PredicateSqlFilterExpr)lastExpr));
-                exprList.clear();
-            } else {
-                SqlFilterExpr filterExpr = SqlFilterUtils.fromArrow(fieldVector, exprList);
-                exprList.add(filterExpr);
+                    sqlFilters.add(new SqlFilter((PredicateSqlFilterExpr) lastExpr));
+                    exprList.clear();
+                } else {
+                    SqlFilterExpr filterExpr = SqlFilterUtils.fromArrow(fieldVector, exprList);
+                    exprList.add(filterExpr);
+                }
+            }
+
+            if (!exprList.isEmpty()) {
+                throw new IllegalArgumentException("all expressions have been parsed but the expr list used for parse is not empty: " + exprList.size());
+            }
+
+            return sqlFilters;
+        } finally {
+            if (vectorSchemaRoot != null) {
+                vectorSchemaRoot.close();
             }
         }
-
-        if (!exprList.isEmpty()) {
-            throw new IllegalArgumentException("all expressions have been parsed but the expr list used for parse is not empty: " + exprList.size());
-        }
-
-        return sqlFilters;
     }
 
     public static List<Object> parseQuestionMarkValues(VectorSchemaRoot vectorSchemaRoot) {
-        if (vectorSchemaRoot == null) {
-            throw new IllegalArgumentException("vectorSchemaRoot is null");
-        }
+        try {
+            if (vectorSchemaRoot == null) {
+                throw new IllegalArgumentException("vectorSchemaRoot is null");
+            }
 
-        if (vectorSchemaRoot.getRowCount() != 1) {
-            throw new IllegalArgumentException("row count is not 1: " + vectorSchemaRoot.getRowCount());
-        }
+            if (vectorSchemaRoot.getRowCount() != 1) {
+                throw new IllegalArgumentException("row count is not 1: " + vectorSchemaRoot.getRowCount());
+            }
 
-        logger.trace("parse question mark values from arrow, vector schema root: schema={}, vector={}",
+            logger.trace("parse question mark values from arrow, vector schema root: schema={}, vector={}",
                 vectorSchemaRoot.getSchema(), vectorSchemaRoot.contentToTSVString());
 
-        return vectorSchemaRoot.getFieldVectors().stream()
+            return vectorSchemaRoot.getFieldVectors().stream()
                 .map(fieldVector -> fieldVector.getObject(0))
                 .collect(Collectors.toList());
+        } finally {
+            if (vectorSchemaRoot != null) {
+                vectorSchemaRoot.close();
+            }
+        }
     }
 
     public static void exportArrowStream(ArrowReader arrowReader, long address) {
