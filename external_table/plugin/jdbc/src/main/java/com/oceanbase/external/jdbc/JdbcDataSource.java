@@ -36,6 +36,9 @@ import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.sql.ResultSet.CONCUR_READ_ONLY;
+import static java.sql.ResultSet.TYPE_FORWARD_ONLY;
+
 public class JdbcDataSource extends DataSource {
     private final static Logger logger = LoggerFactory.getLogger(JdbcDataSource.class);
 
@@ -80,7 +83,8 @@ public class JdbcDataSource extends DataSource {
 
         try {
             connection = getConnection();
-            statement = connection.createStatement();
+            statement = connection.createStatement(TYPE_FORWARD_ONLY, CONCUR_READ_ONLY);
+            statement.setFetchSize(Integer.MIN_VALUE);
             ResultSet resultSet = statement.executeQuery(querySql);
 
             final int batchSize = calcBatchSize(resultSet);
