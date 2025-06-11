@@ -52,10 +52,6 @@ public class JdbcScanner extends ArrowReader {
     private final Schema schema;
     private long bytesRead;
 
-    private long delegateNext = 0;
-    private long unloaderElapse = 0;
-    private long loadRecordBatchElapse = 0;
-
     public JdbcScanner(Connection connection,
                        Statement statement,
                        ResultSet resultSet,
@@ -73,24 +69,16 @@ public class JdbcScanner extends ArrowReader {
     public boolean loadNextBatch() throws IOException {
         if (!delegate.hasNext()) return false;
 
-        long begin, delegateEnd, unloaderEnd, loadRecordBatchEnd;
-        begin = System.currentTimeMillis();
         // root will be reused, so we can't close it
         final VectorSchemaRoot root = delegate.next();
-        delegateEnd = System.currentTimeMillis();
         final VectorUnloader unloader = new VectorUnloader(root);
         try (final ArrowRecordBatch recordBatch = unloader.getRecordBatch()) {
-            unloaderEnd = System.currentTimeMillis();
             long thisBytesRead = recordBatch.computeBodyLength();
             bytesRead += thisBytesRead;
             if (thisBytesRead >= (2L * 1024 * 1024 * 1024)) {
                 logger.info("read more than 2G for one batch: {}", thisBytesRead);
             }
             loadRecordBatch(recordBatch);
-            loadRecordBatchEnd = System.currentTimeMillis();
-            delegateNext += (delegateEnd - begin);
-            unloaderElapse += (unloaderEnd - delegateEnd);
-            loadRecordBatchElapse += (loadRecordBatchEnd - unloaderEnd);
         }
         return true;
     }
@@ -102,8 +90,6 @@ public class JdbcScanner extends ArrowReader {
 
     @Override
     protected void closeReadSource() throws IOException {
-        logger.info("hnwyllmm timer result delegate {}, unloader {}, load record batch {}",
-            delegateNext, unloaderElapse, loadRecordBatchElapse);
         try {
             delegate.close();
 

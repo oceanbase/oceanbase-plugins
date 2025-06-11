@@ -34,6 +34,7 @@ import org.apache.arrow.vector.ipc.ArrowReader;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.slf4j.event.Level;
 
 import java.util.ArrayList;
@@ -52,6 +53,8 @@ public class JniUtils {
     private final static Logger logger = LoggerFactory.getLogger(JniUtils.class);
 
     private final static BufferAllocator allocator = new RootAllocator();
+
+    private final static String oceanbaseLabelKey = "oceanbaseLabel";
 
     static BufferAllocator getAllocator(String name) {
         //return allocator.newChildAllocator(name, 0, Long.MAX_VALUE);
@@ -213,5 +216,13 @@ public class JniUtils {
         } else {
             logger.warn("can't set log level. root log is not logback: {}", rootLogger.getClass().getName());
         }
+    }
+
+    public static void setLogLabel(String label) {
+        MDC.put(oceanbaseLabelKey, label);
+    }
+
+    public static void clearLogLabel() {
+        MDC.remove(oceanbaseLabelKey);
     }
 }

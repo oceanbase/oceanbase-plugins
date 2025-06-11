@@ -70,7 +70,7 @@ public class JdbcDataSource extends DataSource {
         TableScanParameter scanParameter = TableScanParameter.of(scanParameterMap);
         QueryBuilder queryBuilder = getQueryBuilder();
         String querySql = queryBuilder.buildSelectQuery(scanParameter, config);
-        logger.info("from java logger, query sql is {}", querySql);
+        logger.info("jdbc query sql is '{}'", querySql);
 
         Connection connection = null;
         Statement statement = null;
