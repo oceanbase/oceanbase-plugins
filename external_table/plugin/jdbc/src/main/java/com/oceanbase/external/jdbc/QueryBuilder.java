@@ -59,6 +59,7 @@ public class QueryBuilder {
         /// The filters were created by {@link JdbcDataSource.pushdownFilters}
         List<String> filters = tableScanParameter.getSqlFilters();
         if (!filters.isEmpty()) {
+            logger.info("filters is : {}", filters);
             // NOTE we must convert the elements to string as the MessageFormat would like to format
             // the elements friendly to human. For example, the number 1000000 would be formatted to
             // 1,000,000 which is not a valid sql.
@@ -87,9 +88,10 @@ public class QueryBuilder {
     private String sqlFilterExprToQueryString(SqlFilterExpr sqlFilterExpr) {
         if (sqlFilterExpr instanceof ColumnRefSqlFilterExpr) {
             String columnName = ((ColumnRefSqlFilterExpr) sqlFilterExpr).getColumnName();
-            return this.identifierQuote + columnName + this.identifierQuote;
+            return quoteString(columnName, this.identifierQuote);
         } else if (sqlFilterExpr instanceof ConstValueSqlFilterExpr) {
             Object object = ((ConstValueSqlFilterExpr) sqlFilterExpr).getValue();
+            logger.info("const value expr: value: {}, string value: {}", object, toSqlString(object));
             return toSqlString(object);
 
         } else if (sqlFilterExpr instanceof QuestionMarkSqlFilterExpr) {
@@ -197,7 +199,10 @@ public class QueryBuilder {
             Object[] childrenSqlStrings = children.stream()
                     .map(this::sqlFilterExprToQueryString)
                     .toArray();
-            logger.info("query to string. format={}, values={}", queryFormat, Objects.toString(childrenSqlStrings));
+            for (Object object : childrenSqlStrings) {
+                logger.info("query to string value: {}", object);
+            }
+            logger.info("query to string. format={}", queryFormat);
             try {
                 return MessageFormat.format(queryFormat, childrenSqlStrings);
             } catch (Exception e) {
