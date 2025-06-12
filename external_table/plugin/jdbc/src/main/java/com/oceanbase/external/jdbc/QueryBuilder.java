@@ -20,6 +20,8 @@
 package com.oceanbase.external.jdbc;
 
 import com.oceanbase.external.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -27,8 +29,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class QueryBuilder
-{
+public class QueryBuilder {
+    private final static Logger logger = LoggerFactory.getLogger(QueryBuilder.class);
     private final String identifierQuote;
 
     public QueryBuilder() {
@@ -195,6 +197,7 @@ public class QueryBuilder
             Object[] childrenSqlStrings = children.stream()
                     .map(this::sqlFilterExprToQueryString)
                     .toArray();
+            logger.info("query to string. format={}, values={}", queryFormat, Objects.toString(childrenSqlStrings));
             try {
                 return MessageFormat.format(queryFormat, childrenSqlStrings);
             } catch (Exception e) {
@@ -208,7 +211,7 @@ public class QueryBuilder
 
     /**
      * Convert value into string which used in SQL where condition.
-     * For example, WHERE A='abc' when object is a string 'abc'
+     * For example, WHERE A='abc' when the object is a string 'abc'
      */
     private static String toSqlString(Object object) {
         if (object == null) {
