@@ -63,13 +63,22 @@ public class QueryBuilder {
             // NOTE we must convert the elements to string as the MessageFormat would like to format
             // the elements friendly to human. For example, the number 1000000 would be formatted to
             // 1,000,000 which is not a valid sql.
-            Object[] questionMarkStringValues = tableScanParameter.getQuestionMarkValues().stream()
-                            .map(QueryBuilder::toSqlString)
-                            .toArray();
             sb.append(" WHERE ");
-            String filterSql = filters.stream()
-                    .map(filter -> MessageFormat.format(filter, questionMarkStringValues))
+            String filterSql;
+            if (tableScanParameter.getQuestionMarkValues().isEmpty()) {
+                Object[] questionMarkStringValues = tableScanParameter.getQuestionMarkValues().stream()
+                    .map(QueryBuilder::toSqlString)
+                    .toArray();
+
+                // `'` is a special character in MessageFormat.
+                // we should replace `'` to `''`.
+                filterSql = filters.stream()
+                    .map(filter -> MessageFormat.format(
+                        filter.replace("'", "''"), questionMarkStringValues))
                     .collect(Collectors.joining(" AND "));
+            } else {
+                filterSql = String.join(" AND ", filters);
+            }
             sb.append(filterSql);
         }
         return sb.toString();
@@ -224,6 +233,7 @@ public class QueryBuilder {
         }
         if (object instanceof String || object instanceof org.apache.arrow.vector.util.Text) {
             String val = Objects.toString(object);
+            // replace `'` with `''` in SQL
             return "'" + val.replace("'", "''") +  "'";
         }
         // TODO Some types should be converted to string and quoted, such as date, datetime
