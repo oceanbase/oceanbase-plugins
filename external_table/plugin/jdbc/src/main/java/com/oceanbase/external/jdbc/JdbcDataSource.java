@@ -88,7 +88,7 @@ public class JdbcDataSource extends DataSource {
             ResultSet resultSet = statement.executeQuery(querySql);
 
             final int batchSize = calcBatchSize(resultSet);
-            logger.debug("use batch size: {}", batchSize);
+            logger.info("use batch size: {}", batchSize);
             JdbcToArrowConfig jdbcToArrowConfig = new JdbcToArrowConfigBuilder(allocator, utcCalendar)
                     .setReuseVectorSchemaRoot(true)
                     .setJdbcToArrowTypeConverter(getReadTypeMapping(utcCalendar))

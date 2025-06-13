@@ -69,12 +69,18 @@ public class MysqlJdbcDataSource extends JdbcDataSource {
 
     @Override
     protected Connection getConnection() throws SQLException {
+        // ref to com.mysql.cj.conf.PropertyDefinitions to check the default values.
         Map<String, String> defaultProperties = new HashMap<String, String>() {{
             put(PropertyKey.connectionTimeZone.getKeyName(), "UTC");
             put(PropertyKey.forceConnectionTimeZoneToSession.getKeyName(), "true");
             put(PropertyKey.zeroDateTimeBehavior.getKeyName(), "round");
             put(PropertyKey.tinyInt1isBit.getKeyName(), "false");
             put(PropertyKey.characterEncoding.getKeyName(), "UTF-8");
+            put(PropertyKey.socketTimeout.getKeyName(), "3600000"); // millisecond
+            // in streaming result scenario, if netTimeoutForStreamingResults is greater than 0(default 600),
+            // MySQL driver would set net_write_timeout variable to rewrite Server configuration.
+            put(PropertyKey.netTimeoutForStreamingResults.getKeyName(), "3600"); // second
+            put(PropertyKey.tcpKeepAlive.getKeyName(), "true");
         }};
         Properties connProperties = new Properties();
         if (config.user != null) {
