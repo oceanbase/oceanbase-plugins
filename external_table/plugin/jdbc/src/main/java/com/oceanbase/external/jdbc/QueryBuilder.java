@@ -65,7 +65,7 @@ public class QueryBuilder {
             // 1,000,000 which is not a valid sql.
             sb.append(" WHERE ");
             String filterSql;
-            if (tableScanParameter.getQuestionMarkValues().isEmpty()) {
+            if (!tableScanParameter.getQuestionMarkValues().isEmpty()) {
                 Object[] questionMarkStringValues = tableScanParameter.getQuestionMarkValues().stream()
                     .map(QueryBuilder::toSqlString)
                     .toArray();
