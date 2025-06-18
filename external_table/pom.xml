@@ -47,14 +47,19 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.arrow</groupId>
-                <artifactId>arrow-memory-netty</artifactId>
+                <artifactId>arrow-c-data</artifactId>
                 <version>${dep.arrow.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-memory-netty</artifactId>
+                <version>${dep.arrow.version}</version>
+            </dependency>
+            <!--dependency>
                 <groupId>org.apache.arrow.adbc</groupId>
                 <artifactId>adbc-driver-jdbc</artifactId>
                 <version>${dep.adbc.version}</version>
-            </dependency>
+            </dependency-->
 
             <!-- JDBC Drivers -->
             <dependency>
