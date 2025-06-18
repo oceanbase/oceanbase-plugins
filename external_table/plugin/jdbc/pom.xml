@@ -72,6 +72,7 @@
                                     <groupId>org.apache.arrow</groupId>
                                     <artifactId>arrow-c-data</artifactId>
                                     <overWrite>false</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
