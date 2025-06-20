@@ -36,12 +36,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SqlFilterUtils {
+/**
+ * Some helper function to translate filters from Arrow to Java objects
+ */
+class SqlFilterUtils {
     private final static Logger logger = LoggerFactory.getLogger(SqlFilterUtils.class);
 
+    /// The constants below defined in observer, so we can't change them.
     private static final String CMP_PREFIX = "cmp.";
     private static final String CONCAT_PREFIX = "concat.";
-    private static final Map<String, SqlFilterExpr.Type> sqlFilterTypeNameMap = new HashMap<String, SqlFilterExpr.Type>(){{
+    private static final Map<String, SqlFilterExpr.Type> SQL_FILTER_TYPE_NAME_MAP = new HashMap<String, SqlFilterExpr.Type>(){{
         put("invalid", SqlFilterExpr.Type.INVALID);
         put("column_ref", SqlFilterExpr.Type.COLUMN_REF);
         put("const_value", SqlFilterExpr.Type.CONST_VALUE);
@@ -67,17 +71,17 @@ public class SqlFilterUtils {
         put(CONCAT_PREFIX + "not", SqlFilterExpr.Type.CMP_NOT);
     }};
 
-    public static SqlFilterExpr.Type getExprType(String name) {
-        return sqlFilterTypeNameMap.getOrDefault(name, SqlFilterExpr.Type.INVALID);
+    static SqlFilterExpr.Type getExprType(String name) {
+        return SQL_FILTER_TYPE_NAME_MAP.getOrDefault(name, SqlFilterExpr.Type.INVALID);
     }
-    public static SqlFilterExpr fromArrow(FieldVector fieldVector, List<SqlFilterExpr> exprs) {
+    static SqlFilterExpr fromArrow(FieldVector fieldVector, List<SqlFilterExpr> exprs) {
         if (fieldVector.getValueCount() != 1) {
             throw new IllegalArgumentException("invalid value count, expect 1 but got: " +
                     fieldVector.getValueCount());
         }
 
         String fieldName = fieldVector.getField().getName();
-        SqlFilterExpr.Type exprType = sqlFilterTypeNameMap.get(fieldName);
+        SqlFilterExpr.Type exprType = SQL_FILTER_TYPE_NAME_MAP.get(fieldName);
         if (null == exprType) {
             throw new IllegalArgumentException("invalid expr type: " + fieldName);
         }

@@ -40,6 +40,7 @@ public class JdbcTypeMapping {
                 // use int64 can enhance the performance in OceanBase
                 // because all integer are stored as an 8-bytes memory.
                 case BOOLEAN:
+                case BIT:
                 case TINYINT:
                 case SMALLINT:
                 case INTEGER:

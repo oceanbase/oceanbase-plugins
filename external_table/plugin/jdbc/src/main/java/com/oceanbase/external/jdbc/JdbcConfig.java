@@ -19,24 +19,49 @@
 
 package com.oceanbase.external.jdbc;
 
-import java.util.Map;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JdbcConfig {
-    public String jdbc_uri;
-    public String driver_class;
+    public String jdbc_url;
     public String user;
     public String password;
+    public String table;
 
-    static JdbcConfig of(Map<String, String> properties) {
-        JdbcConfig config = new JdbcConfig();
-        config.jdbc_uri = properties.get("jdbc_uri");
-        config.driver_class = properties.get("driver_class");
-        config.user = properties.get("user");
-        config.password = properties.get("password");
-
-        if (config.jdbc_uri == null || config.user == null) {
-            throw new IllegalArgumentException("jdbc uri, user or table is null.");
+    static JdbcConfig of(String parameters) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        try {
+            JdbcConfig config = objectMapper.readValue(parameters, JdbcConfig.class);
+            if (config.jdbc_url == null || config.user == null || config.table == null) {
+                throw new IllegalArgumentException("jdbc url, user or table is null.");
+            }
+            return config;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(String.format("failed to parse json: %s", parameters), e);
         }
-        return config;
+    }
+
+    public String toString() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("failed to json", e);
+        }
+    }
+    String toDisplayString() {
+        JdbcConfig other = new JdbcConfig();
+        other.jdbc_url = this.jdbc_url;
+        other.user = this.user;
+        other.password = "****";
+        other.table = this.table;
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(other);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("failed to json string", e);
+        }
     }
 }

@@ -24,8 +24,10 @@ import java.util.Map;
 import java.util.List;
 
 public class TableScanParameter {
+    private final static String COLUMNS_KEY = "columns";
+    private final static String SQL_FILTER_KEY = "filters";
+    private final static String QUESTION_MARK_VALUES_KEY = "question_mark_values";
 
-    private String tableName;
     private List<String> columns;
     private List<String> sqlFilters;
 
@@ -34,29 +36,21 @@ public class TableScanParameter {
 
     TableScanParameter() {}
 
-    public static TableScanParameter of(Map<String, Object> tableScanParamMap, Map<String, String> properties) {
-        final String tableNameKey = "table";
-        final String columnsKey = "columns";
-        final String sqlFilterKey = "filters";
-        final String questionMarkKey = "question_mark_values";
-
+    public static TableScanParameter of(Map<String, Object> tableScanParamMap) {
         TableScanParameter param = new TableScanParameter();
-        param.tableName = properties.getOrDefault(tableNameKey, (String)(tableScanParamMap.getOrDefault(tableNameKey, "")));
-        param.columns = (List<String>) tableScanParamMap.getOrDefault(columnsKey, Collections.emptyList());
-        param.sqlFilters = (List<String>) tableScanParamMap.getOrDefault(sqlFilterKey, Collections.emptyList());
-        param.questionMarkValues = (List<Object>) tableScanParamMap.getOrDefault(questionMarkKey, Collections.emptyList());
+        param.columns = (List<String>) tableScanParamMap.getOrDefault(COLUMNS_KEY, Collections.emptyList());
+        param.sqlFilters = (List<String>) tableScanParamMap.getOrDefault(SQL_FILTER_KEY, Collections.emptyList());
+        param.questionMarkValues = (List<Object>) tableScanParamMap.getOrDefault(QUESTION_MARK_VALUES_KEY, Collections.emptyList());
         return param;
     }
 
-    public String getTableName() { return this.tableName; }
     public List<String> getColumns() { return this.columns; }
     public List<String> getSqlFilters() { return this.sqlFilters; }
     public List<Object> getQuestionMarkValues() { return this.questionMarkValues; }
 
     public String toString() {
         return "TableScanParameter{" +
-                "tableName='" + tableName + '\'' +
-                ", columns=" + columns +
+                "columns=" + columns +
                 '}';
     }
 }

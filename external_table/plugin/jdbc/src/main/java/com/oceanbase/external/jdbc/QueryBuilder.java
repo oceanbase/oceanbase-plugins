@@ -20,6 +20,8 @@
 package com.oceanbase.external.jdbc;
 
 import com.oceanbase.external.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -27,8 +29,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class QueryBuilder
-{
+public class QueryBuilder {
+    private final static Logger logger = LoggerFactory.getLogger(QueryBuilder.class);
     private final String identifierQuote;
 
     public QueryBuilder() {
@@ -43,7 +45,7 @@ public class QueryBuilder
      * @param tableScanParameter contains the information about the query.
      * @return The Query SQL String
      */
-    public String buildSelectQuery(TableScanParameter tableScanParameter) {
+    public String buildSelectQuery(TableScanParameter tableScanParameter, JdbcConfig jdbcConfig) {
         StringBuilder sb = new StringBuilder("SELECT ");
         if (tableScanParameter.getColumns().isEmpty()) {
             sb.append(1);
@@ -52,21 +54,31 @@ public class QueryBuilder
                     .map(columnName -> quoteString(columnName, identifierQuote))
                     .collect(Collectors.joining(",")));
         }
-        sb.append(" FROM ").append(quoteString(tableScanParameter.getTableName(), identifierQuote));
+        sb.append(" FROM ").append(quoteString(jdbcConfig.table, identifierQuote));
 
         /// The filters were created by {@link JdbcDataSource.pushdownFilters}
         List<String> filters = tableScanParameter.getSqlFilters();
         if (!filters.isEmpty()) {
+            logger.debug("filters is : {}", filters);
             // NOTE we must convert the elements to string as the MessageFormat would like to format
             // the elements friendly to human. For example, the number 1000000 would be formatted to
             // 1,000,000 which is not a valid sql.
-            Object[] questionMarkStringValues = tableScanParameter.getQuestionMarkValues().stream()
-                            .map(QueryBuilder::toSqlString)
-                            .toArray();
             sb.append(" WHERE ");
-            String filterSql = filters.stream()
-                    .map(filter -> MessageFormat.format(filter, questionMarkStringValues))
+            String filterSql;
+            if (!tableScanParameter.getQuestionMarkValues().isEmpty()) {
+                Object[] questionMarkStringValues = tableScanParameter.getQuestionMarkValues().stream()
+                    .map(QueryBuilder::toSqlString)
+                    .toArray();
+
+                // `'` is a special character in MessageFormat.
+                // we should replace `'` to `''`.
+                filterSql = filters.stream()
+                    .map(filter -> MessageFormat.format(
+                        filter.replace("'", "''"), questionMarkStringValues))
                     .collect(Collectors.joining(" AND "));
+            } else {
+                filterSql = String.join(" AND ", filters);
+            }
             sb.append(filterSql);
         }
         return sb.toString();
@@ -85,9 +97,10 @@ public class QueryBuilder
     private String sqlFilterExprToQueryString(SqlFilterExpr sqlFilterExpr) {
         if (sqlFilterExpr instanceof ColumnRefSqlFilterExpr) {
             String columnName = ((ColumnRefSqlFilterExpr) sqlFilterExpr).getColumnName();
-            return this.identifierQuote + columnName + this.identifierQuote;
+            return quoteString(columnName, this.identifierQuote);
         } else if (sqlFilterExpr instanceof ConstValueSqlFilterExpr) {
             Object object = ((ConstValueSqlFilterExpr) sqlFilterExpr).getValue();
+            logger.debug("const value expr: value: {}, string value: {}", object, toSqlString(object));
             return toSqlString(object);
 
         } else if (sqlFilterExpr instanceof QuestionMarkSqlFilterExpr) {
@@ -195,6 +208,10 @@ public class QueryBuilder
             Object[] childrenSqlStrings = children.stream()
                     .map(this::sqlFilterExprToQueryString)
                     .toArray();
+            for (Object object : childrenSqlStrings) {
+                logger.info("query to string value: {}", object);
+            }
+            logger.info("query to string. format={}", queryFormat);
             try {
                 return MessageFormat.format(queryFormat, childrenSqlStrings);
             } catch (Exception e) {
@@ -208,7 +225,7 @@ public class QueryBuilder
 
     /**
      * Convert value into string which used in SQL where condition.
-     * For example, WHERE A='abc' when object is a string 'abc'
+     * For example, WHERE A='abc' when the object is a string 'abc'
      */
     private static String toSqlString(Object object) {
         if (object == null) {
@@ -216,6 +233,7 @@ public class QueryBuilder
         }
         if (object instanceof String || object instanceof org.apache.arrow.vector.util.Text) {
             String val = Objects.toString(object);
+            // replace `'` with `''` in SQL
             return "'" + val.replace("'", "''") +  "'";
         }
         // TODO Some types should be converted to string and quoted, such as date, datetime

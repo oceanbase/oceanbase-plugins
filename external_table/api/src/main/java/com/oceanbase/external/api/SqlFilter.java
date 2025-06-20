@@ -19,7 +19,14 @@
 
 package com.oceanbase.external.api;
 
+/**
+ * A SQL Filter is a predicate.
+ * For example,
+ * SELECT id, name, age FROM t WHERE id=1 AND name LIKE 'Ocean%';
+ * The WHERE conditions `id=1` and `name LIKE 'Ocean%'` are `SqlFilter`.
+ */
 public class SqlFilter {
+    /// A sql filter must be a predicate expression.
     private final PredicateSqlFilterExpr sqlFilterExpr;
 
     public SqlFilter(PredicateSqlFilterExpr sqlFilterExpr) {

@@ -24,6 +24,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.function.Function;
 
+import com.oceanbase.external.api.Constants;
 import com.oceanbase.external.api.DataSource;
 import com.oceanbase.external.api.SqlFilter;
 import com.oceanbase.external.api.TableScanParameter;
@@ -36,22 +37,22 @@ import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JdbcDataSource implements DataSource {
+import static java.sql.ResultSet.CONCUR_READ_ONLY;
+import static java.sql.ResultSet.TYPE_FORWARD_ONLY;
+
+public class JdbcDataSource extends DataSource {
     private final static Logger logger = LoggerFactory.getLogger(JdbcDataSource.class);
 
-    protected final BufferAllocator allocator;
-    protected final Map<String, String> properties;
     protected final JdbcConfig config;
 
     public JdbcDataSource(BufferAllocator allocator, Map<String, String> properties) {
-        this.allocator = allocator;
-        this.properties = properties;
-        this.config = JdbcConfig.of(properties);
+        super(allocator, properties);
+        this.config = JdbcConfig.of(properties.getOrDefault(Constants.PARAMETERS_KEY, ""));
     }
 
     @Override
-    public List<String> sensitiveKeys() {
-        return Collections.singletonList("password");
+    public String toDisplayString() {
+        return config.toDisplayString();
     }
 
     @Override
@@ -67,10 +68,10 @@ public class JdbcDataSource implements DataSource {
 
     @Override
     public ArrowReader createScanner(Map<String, Object> scanParameterMap) throws IOException {
-        TableScanParameter scanParameter = TableScanParameter.of(scanParameterMap, properties);
+        TableScanParameter scanParameter = TableScanParameter.of(scanParameterMap);
         QueryBuilder queryBuilder = getQueryBuilder();
-        String querySql = queryBuilder.buildSelectQuery(scanParameter);
-        logger.info("from java logger, query sql is {}", querySql);
+        String querySql = queryBuilder.buildSelectQuery(scanParameter, config);
+        logger.info("jdbc query sql is '{}'", querySql);
 
         Connection connection = null;
         Statement statement = null;
@@ -83,11 +84,12 @@ public class JdbcDataSource implements DataSource {
 
         try {
             connection = getConnection();
-            statement = connection.createStatement();
+            statement = connection.createStatement(TYPE_FORWARD_ONLY, CONCUR_READ_ONLY);
+            statement.setFetchSize(Integer.MIN_VALUE);
             ResultSet resultSet = statement.executeQuery(querySql);
 
             final int batchSize = calcBatchSize(resultSet);
-            logger.debug("use batch size: {}", batchSize);
+            logger.info("use batch size: {}", batchSize);
             JdbcToArrowConfig jdbcToArrowConfig = new JdbcToArrowConfigBuilder(allocator, utcCalendar)
                     .setReuseVectorSchemaRoot(true)
                     .setJdbcToArrowTypeConverter(getReadTypeMapping(utcCalendar))
@@ -103,7 +105,7 @@ public class JdbcDataSource implements DataSource {
     }
 
     protected Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(config.jdbc_uri, config.user, config.password);
+        return DriverManager.getConnection(config.jdbc_url, config.user, config.password);
     }
 
     protected QueryBuilder getQueryBuilder() {
