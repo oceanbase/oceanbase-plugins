@@ -209,9 +209,9 @@ public class QueryBuilder {
                     .map(this::sqlFilterExprToQueryString)
                     .toArray();
             for (Object object : childrenSqlStrings) {
-                logger.info("query to string value: {}", object);
+                logger.debug("query to string value: {}", object);
             }
-            logger.info("query to string. format={}", queryFormat);
+            logger.debug("query to string. format={}", queryFormat);
             try {
                 return MessageFormat.format(queryFormat, childrenSqlStrings);
             } catch (Exception e) {

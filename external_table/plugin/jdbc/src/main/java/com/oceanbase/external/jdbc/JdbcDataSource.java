@@ -77,7 +77,7 @@ public class JdbcDataSource extends DataSource {
         Statement statement = null;
 
         /*
-         we don't user ADBC here even though ADBC-JDBC supports JDBC very well and has a better design.
+         we don't use ADBC here even though ADBC-JDBC supports JDBC very well and has a better design.
          Because ADBC-JDBC doesn't support type mapping.
          */
         Calendar utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
