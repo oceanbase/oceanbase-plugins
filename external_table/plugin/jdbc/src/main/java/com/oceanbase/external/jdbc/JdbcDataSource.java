@@ -24,6 +24,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.function.Function;
 
+import com.oceanbase.external.api.Constants;
 import com.oceanbase.external.api.DataSource;
 import com.oceanbase.external.api.SqlFilter;
 import com.oceanbase.external.api.TableScanParameter;
@@ -44,9 +45,9 @@ public class JdbcDataSource extends DataSource {
 
     protected final JdbcConfig config;
 
-    public JdbcDataSource(BufferAllocator allocator, String parameters) {
-        super(allocator, parameters);
-        this.config = JdbcConfig.of(parameters);
+    public JdbcDataSource(BufferAllocator allocator, Map<String, String> properties) {
+        super(allocator, properties);
+        this.config = JdbcConfig.of(properties.getOrDefault(Constants.PARAMETERS_KEY, ""));
     }
 
     @Override

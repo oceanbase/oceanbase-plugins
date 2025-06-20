@@ -19,7 +19,6 @@
 
 package com.oceanbase.external.api;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -33,15 +32,16 @@ import org.apache.arrow.vector.ipc.ArrowReader;
  * To relational databases, it means a table with specific database settings.
  * A DataSource must provide constructor that accept two parameters:
  * - allocate: org.apache.arrow.memory.BufferAllocator, which used by Arrow;
- * - parameters: String, which provides information to create the DataSource.
+ * - properties: Map<String, String>, which provides information to create the DataSource.
+ *   The `properties` contains the information of the `PROPERTIES` field in `create table` SQL.
  */
 public abstract class DataSource {
     protected final BufferAllocator allocator;
-    protected final String parameters;
+    protected final Map<String, String> properties;
 
-    public DataSource(BufferAllocator allocator, String parameters) {
+    public DataSource(BufferAllocator allocator, Map<String, String> properties) {
         this.allocator = allocator;
-        this.parameters = parameters;
+        this.properties = properties;
     }
 
     /**
@@ -58,7 +58,7 @@ public abstract class DataSource {
      * </p>
      */
     @SuppressWarnings("unused")
-    public String toDisplayString() { return parameters; }
+    public String toDisplayString() { return properties.getOrDefault(Constants.PARAMETERS_KEY, ""); }
 
     /**
      * Test which filter can be push down to external table data source

@@ -46,8 +46,8 @@ import static java.sql.Types.TIMESTAMP;
 public class MysqlJdbcDataSource extends JdbcDataSource {
     private final static String DRIVER_CLASS_NAME = "com.mysql.cj.jdbc.Driver";
 
-    public MysqlJdbcDataSource(BufferAllocator allocator, String parameters) {
-        super(allocator, parameters);
+    public MysqlJdbcDataSource(BufferAllocator allocator, Map<String, String> properties) {
+        super(allocator, properties);
     }
 
     @Override

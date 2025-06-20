@@ -19,6 +19,7 @@
 
 package com.oceanbase.external.internal;
 
+import com.oceanbase.external.api.Constants;
 import com.oceanbase.external.api.DataSource;
 
 import org.apache.arrow.memory.BufferAllocator;
@@ -30,12 +31,6 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class DataSourceFactory {
 
-    private final static String PLUGIN_CLASS_KEY = "plugin_class";
-
-    private final static String PLUGIN_NAME_KEY  = "plugin_name";
-
-    private final static String PARAMETERS_KEY = "parameters";
-
     private final static Map<String, String> dataSources = new HashMap<String, String>(){{
             put("jdbc", "com.oceanbase.external.jdbc.JdbcDataSource");
             put("mysql", "com.oceanbase.external.mysql.MysqlJdbcDataSource");
@@ -46,10 +41,10 @@ public class DataSourceFactory {
             throw new IllegalArgumentException("parameter properties is null");
         }
 
-        String pluginClass = properties.get(PLUGIN_CLASS_KEY);
+        String pluginClass = properties.get(Constants.PLUGIN_CLASS_KEY);
         if (pluginClass == null) {
 
-            String pluginName = properties.get(PLUGIN_NAME_KEY);
+            String pluginName = properties.get(Constants.PLUGIN_NAME_KEY);
             if (pluginName != null) {
                 pluginClass = dataSources.get(pluginName);
             }
@@ -59,14 +54,12 @@ public class DataSourceFactory {
                     dataSourceNames());
         }
 
-        String parameters = properties.getOrDefault(PARAMETERS_KEY, "");
-
         // plugin class can be a key or real class name.
         pluginClass = dataSources.getOrDefault(pluginClass, pluginClass);
         try {
             Class<?> dataSourceClass = Class.forName(pluginClass);
-            Constructor<?> constructor = dataSourceClass.getConstructor(BufferAllocator.class, String.class);
-            return (DataSource) constructor.newInstance(JniUtils.getAllocator(pluginClass), parameters);
+            Constructor<?> constructor = dataSourceClass.getConstructor(BufferAllocator.class, Map.class);
+            return (DataSource) constructor.newInstance(JniUtils.getAllocator(pluginClass), properties);
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException("failed to load data source class: " + pluginClass, ex);
         } catch (NoSuchMethodException ex) {
