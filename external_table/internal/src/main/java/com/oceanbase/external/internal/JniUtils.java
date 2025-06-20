@@ -119,7 +119,7 @@ public class JniUtils {
                 throw new IllegalArgumentException("row count is not 1: " + vectorSchemaRoot.getRowCount());
             }
 
-            logger.info("parse sql filter from arrow, vector schema root: schema={}, vector={}",
+            logger.debug("parse sql filter from arrow, vector schema root: schema={}, vector={}",
                 vectorSchemaRoot.getSchema(), vectorSchemaRoot.contentToTSVString());
 
             ArrayList<SqlFilter> sqlFilters = new ArrayList<>();

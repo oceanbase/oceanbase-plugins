@@ -34,8 +34,8 @@ public class JdbcConfig {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
             JdbcConfig config = objectMapper.readValue(parameters, JdbcConfig.class);
-            if (config.jdbc_url == null || config.user == null) {
-                throw new IllegalArgumentException("jdbc uri, user or table is null.");
+            if (config.jdbc_url == null || config.user == null || config.table == null) {
+                throw new IllegalArgumentException("jdbc url, user or table is null.");
             }
             return config;
         } catch (JsonProcessingException e) {
