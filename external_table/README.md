@@ -5,8 +5,8 @@
 
 ## 如何使用
 ### 环境准备
-此插件支持OceanBase 4.4.0 及以上版本，并依赖 Java 运行时，使用此功能需要确保：
-- OceanBase 版本不小于 4.4.0；
+此插件支持OceanBase 4.4.1 及以上版本，并依赖 Java 运行时，使用此功能需要确保：
+- OceanBase 版本不小于 4.4.1；
 - JDK 不小于 11；
 - OceanBase 外表插件 Jar 包；
 - MySQL 客户端工具，比如 mysql、mariadb、obclient 等，或其它可以连接MySQL的客户端工具。
@@ -153,11 +153,7 @@ create external table lineitem(
 ) PROPERTIES (
   TYPE='plugin',
   NAME='mysql',
-  PARAMETERS=(
-    jdbc_uri='jdbc:mysql://192.168.0.10:3306/test?useSSL=false',
-    `user`='root',
-    `password`='',
-    `table`='lineitem')
+  PARAMETERS='{"jdbc_url":"jdbc:mysql://192.168.0.10:3306/test?useSSL=false","user":"root","password":"","table":"lineitem"}'
 );
 ```
 
