@@ -55,11 +55,16 @@
                 <artifactId>arrow-memory-netty</artifactId>
                 <version>${dep.arrow.version}</version>
             </dependency>
-            <!--dependency>
+            <dependency>
+                <groupId>org.apache.arrow.adbc</groupId>
+                <artifactId>adbc-driver-manager</artifactId>
+                <version>${dep.adbc.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.arrow.adbc</groupId>
                 <artifactId>adbc-driver-jdbc</artifactId>
                 <version>${dep.adbc.version}</version>
-            </dependency-->
+            </dependency>
 
             <!-- JDBC Drivers -->
             <dependency>
@@ -80,7 +85,7 @@
                 <version>${dep.logback.classic.version}</version>
             </dependency>
 
-            <!-- OceanBase External Plugin -->
+            <!-- OceanBase External Table and Catalog Plugin -->
             <dependency>
                 <groupId>com.oceanbase.external</groupId>
                 <artifactId>external-plugin-api</artifactId>

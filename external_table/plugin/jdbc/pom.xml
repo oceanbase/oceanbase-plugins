@@ -20,12 +20,16 @@
             <groupId>com.oceanbase.external</groupId>
             <artifactId>external-plugin-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.oceanbase.external</groupId>
+            <artifactId>external-plugin-adbc</artifactId>
+        </dependency>
 
         <!-- Arrow -->
-        <!--dependency>
+        <dependency>
             <groupId>org.apache.arrow.adbc</groupId>
             <artifactId>adbc-driver-jdbc</artifactId>
-        </dependency-->
+        </dependency>
         <dependency>
             <groupId>org.apache.arrow</groupId>
             <artifactId>arrow-jdbc</artifactId>
@@ -46,6 +50,7 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
     <build>
         <plugins>
@@ -65,6 +70,12 @@
                                 <artifactItem>
                                     <groupId>org.apache.arrow</groupId>
                                     <artifactId>arrow-jdbc</artifactId>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.apache.arrow.adbc</groupId>
+                                    <artifactId>adbc-driver-jdbc</artifactId>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${project.build.directory}/classes</outputDirectory>
                                 </artifactItem>
