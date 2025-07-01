@@ -133,11 +133,11 @@ final class ObjectMetadataBuilder implements AutoCloseable {
         this.columnRemarks = (VarCharVector) columns.getVectorById(2);
         this.columnXdbcDataTypes = (SmallIntVector) columns.getVectorById(3);
         this.columnXdbcTypeNames = (VarCharVector) columns.getVectorById(4);
-        this.columnXdbcColumnSizes = (IntVector) column.getVectorById(5);
-        this.columnXdbcDecimalDigits = (SmallIntVector) column.getVectorById(6);
-        this.columnXdbcNullables = (SmallIntVector) column.getVectorById(8);
-        this.columnXdbcCharOctetLengthes = (IntVector) column.getVectorById(12);
-        this.columnXdbcIsNullables = (VarCharVector) column.getVectorById(13);
+        this.columnXdbcColumnSizes = (IntVector) columns.getVectorById(5);
+        this.columnXdbcDecimalDigits = (SmallIntVector) columns.getVectorById(6);
+        this.columnXdbcNullables = (SmallIntVector) columns.getVectorById(8);
+        this.columnXdbcCharOctetLengthes = (IntVector) columns.getVectorById(12);
+        this.columnXdbcIsNullables = (VarCharVector) columns.getVectorById(13);
         this.tableConstraints = (ListVector) tables.getVectorById(3);
         this.tableConstraintsWriter = this.tableConstraints.getWriter();
         this.tableConstraintsStructWriter = this.tableConstraintsWriter.struct();
