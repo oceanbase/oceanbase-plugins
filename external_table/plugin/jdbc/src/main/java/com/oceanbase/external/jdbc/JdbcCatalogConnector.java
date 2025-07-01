@@ -52,6 +52,8 @@ public class JdbcCatalogConnector extends AdbcCatalogConnector {
     protected AdbcConnection getConnection() throws AdbcException {
         try (AdbcDatabase database = new JdbcDriver(allocator).open(config)) {
             return database.connect();
+        } catch (java.lang.Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }
