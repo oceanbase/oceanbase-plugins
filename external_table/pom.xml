@@ -93,6 +93,11 @@
             </dependency>
             <dependency>
                 <groupId>com.oceanbase.external</groupId>
+                <artifactId>external-plugin-adbc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oceanbase.external</groupId>
                 <artifactId>external-plugin-jdbc</artifactId>
                 <version>${project.version}</version>
             </dependency>
