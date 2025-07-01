@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>api</module>
+        <module>plugin/adbc</module>
         <module>plugin/jdbc</module>
         <module>plugin/mysql</module>
         <module>internal</module>
