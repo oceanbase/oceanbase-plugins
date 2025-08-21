@@ -51,7 +51,7 @@ public class JdbcConfig {
             throw new RuntimeException("failed to json", e);
         }
     }
-    String toDisplayString() {
+    public String toDisplayString() {
         JdbcConfig other = new JdbcConfig();
         other.jdbc_url = this.jdbc_url;
         other.user = this.user;
