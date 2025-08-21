@@ -181,7 +181,7 @@ MySQL [test]> select * from lineitem;
 
 ### 功能限制
 - OceanBase Oracle 模式暂未实现此功能；
-- JSON/Array/GIS 等类型暂未支持；
+- Array 类型暂未支持；
 - 不支持并发查询；
 - 同一数据源多表 join 不会作为一条 SQL 下推到数据源；
 - 聚合函数、limit等不会下推；
