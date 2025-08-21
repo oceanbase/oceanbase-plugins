@@ -1,7 +1,7 @@
 # oceanbase-plugins
 存放OceanBase的插件代码
 
-# how to build
+# 如何构建
 
 ```bash
 mkdir build
@@ -9,10 +9,10 @@ cd build
 cmake .. -DCMAKE_PREFIX_PATH=`/path/to/oceanbase-plugin-dev-kit` -DCMAKE_INSTALL_PREFIX=./opt
 make && make install
 ```
-Then you can get plugin libraries from `build/opt/lib/`.
+编译完成后插件库位于 `build/opt/lib/` 下。
 
-# how to pack
-You can execute the commands below if you want to build RPM package.
+# 如何打包
+可以执行下面的命令构建RPM包。
 
 ```bash
 mkdir build
@@ -21,4 +21,4 @@ cmake .. -DCMAKE_PREFIX_PATH=`/path/to/oceanbase-plugin-dev-kit` -DPACK_COMPONEN
 cpack -G RPM
 ```
 
-`component-name` is the plugin name, such as `jieba-ftparser`.
+`component-name` 插件名称，比如 `jieba-ftparser`.
