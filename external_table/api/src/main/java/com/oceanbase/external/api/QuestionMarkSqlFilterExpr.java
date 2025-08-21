@@ -43,6 +43,6 @@ public class QuestionMarkSqlFilterExpr implements SqlFilterExpr {
         this.placeholderIndex = placeholderIndex;
     }
 
-    FieldType getType() { return type; }
+    public FieldType getType() { return type; }
     public long getPlaceholderIndex() { return placeholderIndex; }
 }
