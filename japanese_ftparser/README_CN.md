@@ -11,21 +11,38 @@
 - ✅ 局部引用安全：`PushLocalFrame/PopLocalFrame` 管理 JNI 局部引用
 - ✅ 可扩展：可替换 Java 分词实现
 
-## 📁 项目结构
+## 🔧 编译
 
+### 环境准备
+
+1. 安装编译基础
+```bash
+yum install -y git cmake make glibc-devel glibc-headers gcc gcc-c++
 ```
-japanese_ftparser
-├── README.zh-CN.md
-├── build/                          
-│   └── libjapanese_ftparser.so      # 插件 .so
-├── java/
-│   ├── JapaneseSegmenter.java       # Kuromoji 驱动的 Java 日语分词器
-│   ├── JapaneseSegmenter.class
-│   └── lib/
-│       ├── lucene-core-8.11.2.jar
-│       ├── lucene-analyzers-common-8.11.2.jar
-│       └── lucene-analyzers-kuromoji-8.11.2.jar
+该命令将会安装gcc开发环境。
+
+> 如果你的环境已经具备可以跳过当前步骤
+
+2. 安装OceanBase 插件开发套件
+```bash
+yum install -y oceanbase-plugin-dev-kit
 ```
+
+### 编译
+
+```bash
+# 选择一个你自己的工作目录
+cd `your/workspace`
+# 下载源码
+git clone https://github.com/oceanbase/oceanbase-plugins
+# 编译
+cd oceanbase-plugins/japanese_ftparser
+mkdir build
+cd build
+cmake ..
+make
+```
+你将会在build目录下看到libjapanese_ftparser.so文件，这个就是动态库插件。
 
 ## 🚀 快速开始
 
