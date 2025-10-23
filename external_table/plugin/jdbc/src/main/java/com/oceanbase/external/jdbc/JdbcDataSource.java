@@ -20,8 +20,18 @@
 package com.oceanbase.external.jdbc;
 
 import java.io.IOException;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 import java.util.function.Function;
 
 import com.oceanbase.external.api.Constants;
@@ -85,7 +95,9 @@ public class JdbcDataSource extends DataSource {
         try {
             connection = getConnection();
             statement = connection.createStatement(TYPE_FORWARD_ONLY, CONCUR_READ_ONLY);
-            statement.setFetchSize(Integer.MIN_VALUE);
+            
+            // 根据数据库类型设置合适的fetchSize
+            setOptimalFetchSize(statement, connection);
             ResultSet resultSet = statement.executeQuery(querySql);
 
             final int batchSize = calcBatchSize(resultSet);

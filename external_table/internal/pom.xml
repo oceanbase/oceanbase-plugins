@@ -37,6 +37,10 @@
             <groupId>com.oceanbase.external</groupId>
             <artifactId>external-plugin-mysql</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.oceanbase.external</groupId>
+            <artifactId>external-plugin-sqlserver</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
