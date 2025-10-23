@@ -95,7 +95,7 @@ public class SqlServerJdbcDataSource extends JdbcDataSource {
             // Critical: trustServerCertificate=true to avoid SSL handshake issues
             // This matches the behavior of sqlcmd which doesn't validate certificates by default
             put("trustServerCertificate", "true");
-            put("encrypt", "true"); // disable encryption to match sqlcmd default behavior
+            put("encrypt", "false"); // disable encryption to match sqlcmd default behavior
             // Enable adaptive response buffering for streaming large result sets
             put("responseBuffering", "adaptive");
         }};

@@ -118,8 +118,8 @@ public class MysqlJdbcDataSource extends JdbcDataSource {
 
     @Override
     public void setOptimalFetchSize(Statement statement, Connection connection) throws SQLException {
-        // SQL Server specific streaming optimization
-        // Use larger fetch size with responseBuffering=adaptive for better performance
+        // MySQL-specific streaming optimization:
+        // Setting fetch size to Integer.MIN_VALUE enables streaming result sets in MySQL Connector/J
         statement.setFetchSize(Integer.MIN_VALUE);
         logger.info("Set SQL Server optimized fetch size: MIN_VALUE");
     }

@@ -100,9 +100,9 @@ public class SqlServerJdbcDataSourceTest {
 
         // Create a simple scan parameter according to TableScanParameter.of() method
         Map<String, Object> scanParams = new HashMap<>();
-        scanParams.put("columns", Arrays.asList("year_field"));  // 使用columns而不是required_fields
-        scanParams.put("filters", Collections.emptyList());  // 使用filters而不是predicates
-        scanParams.put("question_mark_values", Collections.emptyList());  // 添加question_mark_values参数
+        scanParams.put("columns", Arrays.asList("year_field"));  // Use columns instead of required_fields
+        scanParams.put("filters", Collections.emptyList());  // Use filters instead of predicates
+        scanParams.put("question_mark_values", Collections.emptyList());  // Add question_mark_values parameter
 
         System.out.println("\nStarting to scan table...");
         
@@ -118,8 +118,8 @@ public class SqlServerJdbcDataSourceTest {
             
             int rowCount = 0;
             int batchCount = 0;
-            
-            // 使用标准的ArrowReader接口读取数据
+
+            // Read data using the standard ArrowReader interface
             while (reader.loadNextBatch()) {
                 batchCount++;
                 VectorSchemaRoot root = reader.getVectorSchemaRoot();
@@ -130,16 +130,14 @@ public class SqlServerJdbcDataSourceTest {
                 
                 System.out.println("\n=== Batch " + batchCount + ": " + batchRows + " rows ===");
                 
-                // 第一个批次显示schema信息
+                // Display schema information for the first batch
                 if (batchCount == 1) {
                     System.out.println("Schema: " + root.getSchema());
                     System.out.println();
                 }
                 
-                // 输出表内容
-                printTableData(root, Math.min(batchRows, 100)); // 每批次最多显示10行
+                printTableData(root, Math.min(batchRows, 100));
                 
-                // 限制输出用于测试
                 if (batchCount >= 3) {
                     System.out.println("Stopping after 3 batches for testing");
                     break;
@@ -154,16 +152,12 @@ public class SqlServerJdbcDataSourceTest {
         }
     }
 
-    /**
-     * 打印表数据内容
-     */
     private void printTableData(VectorSchemaRoot root, int maxRows) {
         if (root.getRowCount() == 0) {
             System.out.println("No data in this batch");
             return;
         }
 
-        // 打印列标题
         System.out.print("Row\t");
         for (int col = 0; col < root.getFieldVectors().size(); col++) {
             String fieldName = root.getVector(col).getField().getName();
@@ -171,34 +165,27 @@ public class SqlServerJdbcDataSourceTest {
         }
         System.out.println();
 
-        // 打印分隔线
         System.out.print("---\t");
         for (int col = 0; col < root.getFieldVectors().size(); col++) {
             System.out.print("--------\t");
         }
         System.out.println();
 
-        // 打印数据行
         for (int row = 0; row < Math.min(maxRows, root.getRowCount()); row++) {
             System.out.print((row + 1) + "\t");
             for (int col = 0; col < root.getFieldVectors().size(); col++) {
                 Object value = root.getVector(col).getObject(row);
                 String displayValue = (value == null) ? "NULL" : value.toString();
                 
-                // 根据字段类型设置不同的显示长度限制
                 String fieldName = root.getVector(col).getField().getName().toLowerCase();
-                int maxLength = 20; // 默认长度
+                int maxLength = 20; // default length
                 
-                // 日期时间类型需要更多空间来完整显示
                 if (fieldName.contains("date") || fieldName.contains("time")) {
-                    maxLength = 50; // 足够显示完整的日期时间字符串
-                }
-                // 二进制类型可以适当更长
-                else if (fieldName.contains("binary")) {
+                    maxLength = 50; // Date and time types need more space for complete display
+                } else if (fieldName.contains("binary")) {
                     maxLength = 30;
                 }
                 
-                // 限制显示长度，避免输出过长
                 if (displayValue.length() > maxLength) {
                     displayValue = displayValue.substring(0, maxLength - 3) + "...";
                 }
@@ -207,7 +194,6 @@ public class SqlServerJdbcDataSourceTest {
             System.out.println();
         }
 
-        // 如果有更多行，显示省略信息
         if (root.getRowCount() > maxRows) {
             System.out.println("... (" + (root.getRowCount() - maxRows) + " more rows)");
         }
