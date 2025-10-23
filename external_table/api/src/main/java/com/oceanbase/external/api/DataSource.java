@@ -20,6 +20,9 @@
 package com.oceanbase.external.api;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -78,4 +81,7 @@ public abstract class DataSource {
      *                        for more details.
      */
     public abstract ArrowReader createScanner(Map<String, Object> scanParameters) throws IOException;
+
+    public void setOptimalFetchSize(Statement statement, Connection connection) throws SQLException {
+    }
 }

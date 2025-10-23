@@ -34,6 +34,7 @@ public class DataSourceFactory {
     private final static Map<String, String> dataSources = new HashMap<String, String>(){{
             put("jdbc", "com.oceanbase.external.jdbc.JdbcDataSource");
             put("mysql", "com.oceanbase.external.mysql.MysqlJdbcDataSource");
+            put("sqlserver", "com.oceanbase.external.sqlserver.SqlServerJdbcDataSource");
         }};
 
     public static DataSource create(Map<String, String> properties) {

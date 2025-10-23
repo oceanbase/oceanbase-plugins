@@ -28,11 +28,14 @@ import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.ipc.ArrowReader;
 import org.apache.arrow.vector.types.Types;
 import org.apache.arrow.vector.types.pojo.ArrowType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +47,7 @@ import static java.sql.Types.TIMESTAMP;
 
 @SuppressWarnings("unused")
 public class MysqlJdbcDataSource extends JdbcDataSource {
+    private final static Logger logger = LoggerFactory.getLogger(MysqlJdbcDataSource.class);
     private final static String DRIVER_CLASS_NAME = "com.mysql.cj.jdbc.Driver";
 
     public MysqlJdbcDataSource(BufferAllocator allocator, Map<String, String> properties) {
@@ -110,5 +114,13 @@ public class MysqlJdbcDataSource extends JdbcDataSource {
                 default: return JdbcTypeMapping.getDefaultTypeMapping(calendar).apply(jdbcFieldInfo);
             }
         });
+    }
+
+    @Override
+    public void setOptimalFetchSize(Statement statement, Connection connection) throws SQLException {
+        // SQL Server specific streaming optimization
+        // Use larger fetch size with responseBuffering=adaptive for better performance
+        statement.setFetchSize(Integer.MIN_VALUE);
+        logger.info("Set SQL Server optimized fetch size: MIN_VALUE");
     }
 }
