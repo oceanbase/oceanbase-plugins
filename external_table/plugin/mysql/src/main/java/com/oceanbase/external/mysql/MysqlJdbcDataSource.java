@@ -121,6 +121,6 @@ public class MysqlJdbcDataSource extends JdbcDataSource {
         // MySQL-specific streaming optimization:
         // Setting fetch size to Integer.MIN_VALUE enables streaming result sets in MySQL Connector/J
         statement.setFetchSize(Integer.MIN_VALUE);
-        logger.info("Set SQL Server optimized fetch size: MIN_VALUE");
+        logger.info("Set MySQL optimized fetch size: MIN_VALUE");
     }
 }

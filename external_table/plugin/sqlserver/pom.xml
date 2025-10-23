@@ -13,7 +13,6 @@
         <dependency>
             <groupId>com.oceanbase.external</groupId>
             <artifactId>external-plugin-jdbc</artifactId>
-            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
