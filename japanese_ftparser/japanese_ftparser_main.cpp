@@ -41,10 +41,10 @@ int plugin_init_jp(ObPluginParamPtr plugin)
 }
 
 // Plugin declaration
-OBP_DECLARE_PLUGIN(japanese_ftparser_v2)
+OBP_DECLARE_PLUGIN(japanese_ftparser)
 {
     OBP_AUTHOR_OCEANBASE,                    // Plugin author
-    OBP_MAKE_VERSION(1, 0, 0),              // Plugin version
+    OBP_MAKE_VERSION(0, 0, 1),              // Plugin version
     OBP_LICENSE_MULAN_PSL_V2,               // Plugin license
     plugin_init_jp,                         // Plugin initialization function
     nullptr,                                // Plugin deinitialization function (not needed)

@@ -10,6 +10,8 @@
 #include <cstring>
 #include <new>
 
+
+
 using namespace oceanbase::jni;
 
 namespace oceanbase {
@@ -27,7 +29,6 @@ ThaiJNIBridge::ThaiJNIBridge()
     : plugin_name_("thai_ftparser")
     , is_initialized_(false)
     , segmenter_class_(nullptr)
-    , constructor_method_(nullptr)
     , segment_method_(nullptr) {
     clear_error();
 }
@@ -69,7 +70,7 @@ int ThaiJNIBridge::initialize() {
     }
     
     is_initialized_ = true;
-    std::cout << "[INFO] Thai JNI Bridge initialized successfully" << std::endl;
+    OBP_LOG_INFO("Thai JNI Bridge initialized successfully");
     return OBP_SUCCESS;
 }
 
@@ -108,23 +109,16 @@ int ThaiJNIBridge::load_java_classes(JNIEnv* env) {
         return OBP_PLUGIN_ERROR;
     }
     
-    // Get constructor method ID
-    constructor_method_ = env->GetMethodID(segmenter_class_, "<init>", "()V");
-    if (!constructor_method_ || oceanbase::jni::JNIUtils::check_and_handle_exception(env, error_msg)) {
-        set_error(OBP_PLUGIN_ERROR, "Failed to find Thai segmenter constructor: " + error_msg);
-        return OBP_PLUGIN_ERROR;
-    }
-    
-    // Get segment method ID
-    segment_method_ = env->GetMethodID(segmenter_class_, config_.segment_method_name.c_str(), 
-                                      "(Ljava/lang/String;)[Ljava/lang/String;");
+    // OPTIMIZED: Get static segment method ID (no constructor needed)
+    segment_method_ = env->GetStaticMethodID(segmenter_class_, config_.segment_method_name.c_str(), 
+                                            "(Ljava/lang/String;)[Ljava/lang/String;");
     if (!segment_method_ || oceanbase::jni::JNIUtils::check_and_handle_exception(env, error_msg)) {
         set_error(OBP_PLUGIN_ERROR, "Failed to find Thai segment method '" + 
                   config_.segment_method_name + "': " + error_msg);
         return OBP_PLUGIN_ERROR;
     }
     
-    std::cout << "[INFO] Thai Java classes loaded successfully" << std::endl;
+    OBP_LOG_INFO("Thai Java classes loaded successfully");
     return OBP_SUCCESS;
 }
 
@@ -132,62 +126,43 @@ int ThaiJNIBridge::do_segment(JNIEnv* env, const std::string& text, std::vector<
     std::string error_msg;
     tokens.clear();
     
-    // Push local frame for automatic local reference cleanup
-    if (env->PushLocalFrame(64) < 0) {
-        set_error(OBP_PLUGIN_ERROR, "Failed to push local frame for Thai segmentation");
-        return OBP_PLUGIN_ERROR;
-    }
-    
     // Convert C++ string to Java string
     jstring jtext = oceanbase::jni::JNIUtils::cpp_string_to_jstring(env, text);
     if (!jtext) {
-        env->PopLocalFrame(nullptr);
         set_error(OBP_PLUGIN_ERROR, "Failed to convert text to Java string for Thai segmentation");
         return OBP_PLUGIN_ERROR;
     }
     
-    // Create Thai segmenter instance
-    jobject local_segmenter = env->NewObject(segmenter_class_, constructor_method_);
-    if (!local_segmenter || oceanbase::jni::JNIUtils::check_and_handle_exception(env, error_msg)) {
-        env->PopLocalFrame(nullptr);
-        set_error(OBP_PLUGIN_ERROR, "Failed to create Thai segmenter instance: " + error_msg);
-        return OBP_PLUGIN_ERROR;
-    }
-    
-    std::cout << "=== OCEANBASE JNI CALL === Segmenting Thai text with Lucene: \"" 
-              << text.substr(0, std::min(text.length(), size_t(100))) << "\" (length: " << text.length() << ")" << std::endl;
-    
-    // Call segment method
-    jobjectArray jresult = (jobjectArray)env->CallObjectMethod(local_segmenter, segment_method_, jtext);
+    // OPTIMIZED: Call static segment method (no instance creation needed)
+    jobjectArray jresult = (jobjectArray)env->CallStaticObjectMethod(
+        segmenter_class_, segment_method_, jtext);
     if (oceanbase::jni::JNIUtils::check_and_handle_exception(env, error_msg)) {
-        env->PopLocalFrame(nullptr);
         set_error(OBP_PLUGIN_ERROR, "Thai segmentation failed: " + error_msg);
+        // Note: jresult is nullptr when exception occurs, no need to clean it
+        env->DeleteLocalRef(jtext);
         return OBP_PLUGIN_ERROR;
     }
     
     if (!jresult) {
-        env->PopLocalFrame(nullptr);
         set_error(OBP_PLUGIN_ERROR, "Thai segmentation returned null result");
+        env->DeleteLocalRef(jtext);
         return OBP_PLUGIN_ERROR;
     }
     
-    // Convert result to C++ vector
+    // Convert result to C++ vector (JNIUtils handles its own Frame management)
     int ret = oceanbase::jni::JNIUtils::jstring_array_to_cpp_vector(env, jresult, tokens);
-    
-    // Pop local frame to clean up local references
-    env->PopLocalFrame(nullptr);
-    
     if (ret != OBP_SUCCESS) {
         set_error(OBP_PLUGIN_ERROR, "Failed to convert Thai segmentation result to C++ vector");
+        env->DeleteLocalRef(jtext);
+        env->DeleteLocalRef(jresult);
         return ret;
     }
     
-    std::cout << "=== OCEANBASE JNI RESULT === Thai segmentation result: [";
-    for (size_t i = 0; i < tokens.size(); ++i) {
-        if (i > 0) std::cout << ", ";
-        std::cout << tokens[i];
-    }
-    std::cout << "]" << std::endl;
+    // Clean up our local references
+    env->DeleteLocalRef(jtext);
+    env->DeleteLocalRef(jresult);
+    
+    // Debug output removed for production use
     
     return OBP_SUCCESS;
 }
@@ -195,7 +170,7 @@ int ThaiJNIBridge::do_segment(JNIEnv* env, const std::string& text, std::vector<
 void ThaiJNIBridge::set_error(int code, const std::string& message) {
     last_error_code_ = code;
     last_error_message_ = message;
-    std::cout << "[ERROR][ThaiJNIBridge] " << message << std::endl;
+    // Error logging removed - let upper layer handle error output
 }
 
 void ThaiJNIBridge::clear_error() {
@@ -243,7 +218,7 @@ int thai_ftparser_init(ObPluginParamPtr param) {
     
     // Don't initialize JVM here - do it lazily on first use (scan_begin)
     // This avoids issues with classpath when Observer is starting up
-    std::cout << "[INFO] Thai FTParser plugin registered (JVM will be initialized on first use)" << std::endl;
+    OBP_LOG_INFO("Thai FTParser plugin registered (JVM will be initialized on first use)");
     return OBP_SUCCESS;
 }
 
@@ -252,7 +227,7 @@ int thai_ftparser_deinit(ObPluginParamPtr param) {
         return OBP_INVALID_ARGUMENT;
     }
     
-    std::cout << "[INFO] Thai FTParser deinitialized" << std::endl;
+    OBP_LOG_INFO("Thai FTParser plugin deinitialized");
     return OBP_SUCCESS;
 }
 
@@ -265,7 +240,7 @@ int thai_ftparser_scan_begin(ObPluginFTParserParamPtr param) {
     auto& manager = oceanbase::thai_ftparser::ThaiJNIBridgeManager::get_instance();
     int ret = manager.initialize();
     if (ret != OBP_SUCCESS) {
-        std::cout << "[ERROR] Failed to initialize Thai JNI bridge on first use" << std::endl;
+        OBP_LOG_WARN("Failed to initialize Thai JNI bridge on first use (error_code: %d)", ret);
         return ret;
     }
     
@@ -295,18 +270,17 @@ int thai_ftparser_scan_begin(ObPluginFTParserParamPtr param) {
     
     ret = bridge->segment(text, tp->tokens);
     if (ret != OBP_SUCCESS) {
-        std::cout << "[ERROR] Thai segmentation failed: " << bridge->get_last_error_message() << std::endl;
+        OBP_LOG_WARN("Thai segmentation failed: %s (error_code: %d)", 
+                     bridge->get_last_error_message().c_str(), bridge->get_last_error_code());
         delete tp;
         return ret;
     }
     
-    std::cout << "[INFO][PLUGIN]do_segment (thai_jni_bridge.cpp:XXX) Segmentation completed, got " 
-              << tp->tokens.size() << " tokens" << std::endl;
-    
     // Store parser state
     obp_ftparser_set_user_data(param, tp);
     
-    std::cout << "[INFO] Thai scan begin completed, got " << tp->tokens.size() << " tokens" << std::endl;
+    OBP_LOG_INFO("Thai segmentation completed: %zu tokens extracted from %zu characters", 
+                 tp->tokens.size(), text.length());
     return OBP_SUCCESS;
 }
 

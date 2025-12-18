@@ -44,7 +44,7 @@ int plugin_init_korean(ObPluginParamPtr plugin)
 OBP_DECLARE_PLUGIN(korean_ftparser)
 {
     OBP_AUTHOR_OCEANBASE,                    // Plugin author
-    OBP_MAKE_VERSION(1, 0, 0),              // Plugin version
+    OBP_MAKE_VERSION(0, 0, 1),              // Plugin version
     OBP_LICENSE_MULAN_PSL_V2,               // Plugin license
     plugin_init_korean,                     // Plugin initialization function
     nullptr,                                // Plugin deinitialization function (not needed)

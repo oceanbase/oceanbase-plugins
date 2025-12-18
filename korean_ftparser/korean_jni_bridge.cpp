@@ -27,7 +27,6 @@ KoreanJNIBridge::KoreanJNIBridge()
     : plugin_name_("korean_ftparser")
     , is_initialized_(false)
     , segmenter_class_(nullptr)
-    , constructor_method_(nullptr)
     , segment_method_(nullptr) {
     clear_error();
 }
@@ -69,7 +68,7 @@ int KoreanJNIBridge::initialize() {
     }
     
     is_initialized_ = true;
-    std::cout << "[INFO] Korean JNI Bridge initialized successfully" << std::endl;
+    OBP_LOG_INFO("Korean JNI Bridge initialized successfully");
     return OBP_SUCCESS;
 }
 
@@ -108,23 +107,16 @@ int KoreanJNIBridge::load_java_classes(JNIEnv* env) {
         return OBP_PLUGIN_ERROR;
     }
     
-    // Get constructor method ID
-    constructor_method_ = env->GetMethodID(segmenter_class_, "<init>", "()V");
-    if (!constructor_method_ || oceanbase::jni::JNIUtils::check_and_handle_exception(env, error_msg)) {
-        set_error(OBP_PLUGIN_ERROR, "Failed to find Korean segmenter constructor: " + error_msg);
-        return OBP_PLUGIN_ERROR;
-    }
-    
-    // Get segment method ID
-    segment_method_ = env->GetMethodID(segmenter_class_, config_.segment_method_name.c_str(), 
-                                      "(Ljava/lang/String;)[Ljava/lang/String;");
+    // OPTIMIZED: Get static segment method ID (no constructor needed)
+    segment_method_ = env->GetStaticMethodID(segmenter_class_, config_.segment_method_name.c_str(), 
+                                            "(Ljava/lang/String;)[Ljava/lang/String;");
     if (!segment_method_ || oceanbase::jni::JNIUtils::check_and_handle_exception(env, error_msg)) {
         set_error(OBP_PLUGIN_ERROR, "Failed to find Korean segment method '" + 
                   config_.segment_method_name + "': " + error_msg);
         return OBP_PLUGIN_ERROR;
     }
     
-    std::cout << "[INFO] Korean Java classes loaded successfully" << std::endl;
+    OBP_LOG_INFO("Korean Java classes loaded successfully");
     return OBP_SUCCESS;
 }
 
@@ -132,62 +124,43 @@ int KoreanJNIBridge::do_segment(JNIEnv* env, const std::string& text, std::vecto
     std::string error_msg;
     tokens.clear();
     
-    // Push local frame for automatic local reference cleanup
-    if (env->PushLocalFrame(64) < 0) {
-        set_error(OBP_PLUGIN_ERROR, "Failed to push local frame for Korean segmentation");
-        return OBP_PLUGIN_ERROR;
-    }
-    
     // Convert C++ string to Java string
     jstring jtext = oceanbase::jni::JNIUtils::cpp_string_to_jstring(env, text);
     if (!jtext) {
-        env->PopLocalFrame(nullptr);
         set_error(OBP_PLUGIN_ERROR, "Failed to convert text to Java string for Korean segmentation");
         return OBP_PLUGIN_ERROR;
     }
     
-    // Create Korean segmenter instance
-    jobject local_segmenter = env->NewObject(segmenter_class_, constructor_method_);
-    if (!local_segmenter || oceanbase::jni::JNIUtils::check_and_handle_exception(env, error_msg)) {
-        env->PopLocalFrame(nullptr);
-        set_error(OBP_PLUGIN_ERROR, "Failed to create Korean segmenter instance: " + error_msg);
-        return OBP_PLUGIN_ERROR;
-    }
-    
-    std::cout << "=== OCEANBASE JNI CALL === Segmenting Korean text with Lucene: \"" 
-              << text.substr(0, std::min(text.length(), size_t(100))) << "\" (length: " << text.length() << ")" << std::endl;
-    
-    // Call segment method
-    jobjectArray jresult = (jobjectArray)env->CallObjectMethod(local_segmenter, segment_method_, jtext);
+    // OPTIMIZED: Call static segment method (no instance creation needed)
+    jobjectArray jresult = (jobjectArray)env->CallStaticObjectMethod(
+        segmenter_class_, segment_method_, jtext);
     if (oceanbase::jni::JNIUtils::check_and_handle_exception(env, error_msg)) {
-        env->PopLocalFrame(nullptr);
         set_error(OBP_PLUGIN_ERROR, "Korean segmentation failed: " + error_msg);
+        // Note: jresult is nullptr when exception occurs, no need to clean it
+        env->DeleteLocalRef(jtext);
         return OBP_PLUGIN_ERROR;
     }
     
     if (!jresult) {
-        env->PopLocalFrame(nullptr);
         set_error(OBP_PLUGIN_ERROR, "Korean segmentation returned null result");
+        env->DeleteLocalRef(jtext);
         return OBP_PLUGIN_ERROR;
     }
     
-    // Convert result to C++ vector
+    // Convert result to C++ vector (JNIUtils handles its own Frame management)
     int ret = oceanbase::jni::JNIUtils::jstring_array_to_cpp_vector(env, jresult, tokens);
-    
-    // Pop local frame to clean up local references
-    env->PopLocalFrame(nullptr);
-    
     if (ret != OBP_SUCCESS) {
         set_error(OBP_PLUGIN_ERROR, "Failed to convert Korean segmentation result to C++ vector");
+        env->DeleteLocalRef(jtext);
+        env->DeleteLocalRef(jresult);
         return ret;
     }
     
-    std::cout << "=== OCEANBASE JNI RESULT === Korean segmentation result: [";
-    for (size_t i = 0; i < tokens.size(); ++i) {
-        if (i > 0) std::cout << ", ";
-        std::cout << tokens[i];
-    }
-    std::cout << "]" << std::endl;
+    // Clean up our local references
+    env->DeleteLocalRef(jtext);
+    env->DeleteLocalRef(jresult);
+    
+    // Debug output removed for production use
     
     return OBP_SUCCESS;
 }
@@ -195,7 +168,7 @@ int KoreanJNIBridge::do_segment(JNIEnv* env, const std::string& text, std::vecto
 void KoreanJNIBridge::set_error(int code, const std::string& message) {
     last_error_code_ = code;
     last_error_message_ = message;
-    std::cout << "[ERROR][KoreanJNIBridge] " << message << std::endl;
+    // Error logging removed - let upper layer handle error output
 }
 
 void KoreanJNIBridge::clear_error() {
@@ -243,7 +216,7 @@ int korean_ftparser_init(ObPluginParamPtr param) {
     
     // Don't initialize JVM here - do it lazily on first use (scan_begin)
     // This avoids issues with classpath when Observer is starting up
-    std::cout << "[INFO] Korean FTParser plugin registered (JVM will be initialized on first use)" << std::endl;
+    OBP_LOG_INFO("Korean FTParser plugin registered (JVM will be initialized on first use)");
     return OBP_SUCCESS;
 }
 
@@ -252,7 +225,7 @@ int korean_ftparser_deinit(ObPluginParamPtr param) {
         return OBP_INVALID_ARGUMENT;
     }
     
-    std::cout << "[INFO] Korean FTParser deinitialized" << std::endl;
+    OBP_LOG_INFO("Korean FTParser plugin deinitialized");
     return OBP_SUCCESS;
 }
 
@@ -265,7 +238,7 @@ int korean_ftparser_scan_begin(ObPluginFTParserParamPtr param) {
     auto& manager = oceanbase::korean_ftparser::KoreanJNIBridgeManager::get_instance();
     int ret = manager.initialize();
     if (ret != OBP_SUCCESS) {
-        std::cout << "[ERROR] Failed to initialize Korean JNI bridge on first use" << std::endl;
+        OBP_LOG_WARN("Failed to initialize Korean JNI bridge on first use (error_code: %d)", ret);
         return ret;
     }
     
@@ -295,18 +268,17 @@ int korean_ftparser_scan_begin(ObPluginFTParserParamPtr param) {
     
     ret = bridge->segment(text, kp->tokens);
     if (ret != OBP_SUCCESS) {
-        std::cout << "[ERROR] Korean segmentation failed: " << bridge->get_last_error_message() << std::endl;
+        OBP_LOG_WARN("Korean segmentation failed: %s (error_code: %d)", 
+                     bridge->get_last_error_message().c_str(), bridge->get_last_error_code());
         delete kp;
         return ret;
     }
     
-    std::cout << "[INFO][PLUGIN]do_segment (korean_jni_bridge.cpp:XXX) Segmentation completed, got " 
-              << kp->tokens.size() << " tokens" << std::endl;
-    
     // Store parser state
     obp_ftparser_set_user_data(param, kp);
     
-    std::cout << "[INFO] Korean scan begin completed, got " << kp->tokens.size() << " tokens" << std::endl;
+    OBP_LOG_INFO("Korean segmentation completed: %zu tokens extracted from %zu characters", 
+                 kp->tokens.size(), text.length());
     return OBP_SUCCESS;
 }
 

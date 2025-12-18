@@ -6,7 +6,7 @@
 #pragma once
 
 #include "oceanbase/ob_plugin_ftparser.h"
-#include "jni_manager.h"  // 统一JNI管理库
+#include "jni_manager.h"  // Unified JNI management library
 #include <string>
 #include <vector>
 #include <mutex>
@@ -43,8 +43,7 @@ private:
     
     // Java class and method references (cached for performance)
     jclass segmenter_class_;
-    jmethodID constructor_method_;
-    jmethodID segment_method_;
+    jmethodID segment_method_;  // Static method
     
     // Error handling
     int last_error_code_;

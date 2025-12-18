@@ -212,3 +212,13 @@ The Thai tokenizer includes intelligent stopword filtering:
 - **Filtering targets**: Common prepositions, conjunctions, particles
 - **Preserved content**: Substantive vocabulary, technical terms
 - **Optimized search**: Improves search relevance
+
+### Comparison with Other Languages
+
+| Language | Tokenization Features | Stopword Processing |
+|----------|----------------------|-------------------|
+| **Thai** | Basic segmentation + stopwords | ✅ Intelligent filtering |
+| Japanese | BaseForm + stopwords | ✅ Stem unification |
+| Korean | MIXED compound words | ❌ Complete preservation |
+
+**The Thai tokenizer achieves the optimal balance between simplicity and effectiveness**.

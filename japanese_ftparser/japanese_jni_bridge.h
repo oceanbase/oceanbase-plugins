@@ -6,7 +6,7 @@
 #pragma once
 
 #include "oceanbase/ob_plugin_ftparser.h"
-#include "jni_manager.h"  // 简化后的包含路径
+#include "jni_manager.h"  // Simplified include path
 #include <string>
 #include <vector>
 #include <mutex>
@@ -43,8 +43,7 @@ private:
     
     // Java class and method references (cached for performance)
     jclass segmenter_class_;
-    jmethodID constructor_method_;
-    jmethodID segment_method_;
+    jmethodID segment_method_;  // Static method
     
     // Error handling
     struct ErrorInfo {

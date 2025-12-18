@@ -112,7 +112,7 @@ cd /path/to/observer
    ./java/lib/lucene-*.jar
    ```
 
-**推奨**: 方式2（javaディレクトリのコピー）を使用し、`OCEANBASE_PARSER_CLASSPATH`の設定不要でクイック体験が可能です
+**推奨**: 方式2（javaディレクトリのコピー）を使用し、`OCEANBASE_PARSER_CLASSPATH`の設定不要でクイック体験が可能
 
 ### インストール確認
 
@@ -180,3 +180,51 @@ WHERE MATCH(c2, c3) AGAINST('ありがとう' IN NATURAL LANGUAGE MODE);
 SELECT * FROM t_japanese
 WHERE MATCH(c2, c3) AGAINST('理由' IN NATURAL LANGUAGE MODE);
 ```
+
+## 技術仕様
+
+### ES完全ソリューション
+
+日本語分かち書きはElasticsearch完全ソリューションを採用：
+
+```
+設定: CustomAnalyzer.builder()
+  .withTokenizer("japanese")                    // kuromoji_tokenizer
+  .addTokenFilter("japaneseBaseForm")           // kuromoji_baseform  
+  .addTokenFilter("japanesePartOfSpeechStop")   // kuromoji_part_of_speech
+  .addTokenFilter("cjkWidth")                   // cjk_width
+  .addTokenFilter("lowercase")                  // lowercase
+  .addTokenFilter("stop")                       // ja_stop
+
+特徴:
+- BaseForm語幹抽出: 動詞・形容詞の活用形を原形に統一
+- ストップワード除去: 助詞・代名詞等の機能語を除去
+- 文字幅正規化: 全角・半角の統一
+- 小文字変換: アルファベットの統一
+```
+
+### Dify設定との整合
+
+このプラグインはDifyのElasticsearch日本語設定と完全に整合：
+
+```json
+{
+  "analysis": {
+    "analyzer": {
+      "ja_analyzer": {
+        "type": "custom",
+        "tokenizer": "kuromoji_tokenizer",
+        "filter": [
+          "kuromoji_baseform",      // ✅ 実装済み
+          "kuromoji_part_of_speech", // ✅ 実装済み  
+          "ja_stop",                // ✅ 実装済み
+          "kuromoji_number",        // 将来拡張予定
+          "kuromoji_stemmer"        // 将来拡張予定
+        ]
+      }
+    }
+  }
+}
+```
+
+**データベース全文検索に最適化された日本語分かち書きソリューション**です。

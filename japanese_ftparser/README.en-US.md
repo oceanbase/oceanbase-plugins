@@ -180,3 +180,51 @@ WHERE MATCH(c2, c3) AGAINST('ありがとう' IN NATURAL LANGUAGE MODE);
 SELECT * FROM t_japanese
 WHERE MATCH(c2, c3) AGAINST('理由' IN NATURAL LANGUAGE MODE);
 ```
+
+## Technical Specifications
+
+### ES Complete Solution
+
+The Japanese tokenizer adopts the Elasticsearch complete solution:
+
+```
+Configuration: CustomAnalyzer.builder()
+  .withTokenizer("japanese")                    // kuromoji_tokenizer
+  .addTokenFilter("japaneseBaseForm")           // kuromoji_baseform  
+  .addTokenFilter("japanesePartOfSpeechStop")   // kuromoji_part_of_speech
+  .addTokenFilter("cjkWidth")                   // cjk_width
+  .addTokenFilter("lowercase")                  // lowercase
+  .addTokenFilter("stop")                       // ja_stop
+
+Features:
+- BaseForm stemming: Unifies verb/adjective inflections to their base forms
+- Stopword removal: Removes functional words like particles and pronouns
+- Character width normalization: Unifies full-width and half-width characters
+- Lowercase conversion: Unifies alphabet cases
+```
+
+### Alignment with Dify Configuration
+
+This plugin is fully aligned with Dify's Elasticsearch Japanese configuration:
+
+```json
+{
+  "analysis": {
+    "analyzer": {
+      "ja_analyzer": {
+        "type": "custom",
+        "tokenizer": "kuromoji_tokenizer",
+        "filter": [
+          "kuromoji_baseform",      // ✅ Implemented
+          "kuromoji_part_of_speech", // ✅ Implemented  
+          "ja_stop",                // ✅ Implemented
+          "kuromoji_number",        // Future enhancement
+          "kuromoji_stemmer"        // Future enhancement
+        ]
+      }
+    }
+  }
+}
+```
+
+**A Japanese tokenization solution optimized for database fulltext search**.
