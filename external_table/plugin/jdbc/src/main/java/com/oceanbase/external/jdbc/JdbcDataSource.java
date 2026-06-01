@@ -105,7 +105,7 @@ public class JdbcDataSource extends DataSource {
             JdbcToArrowConfig jdbcToArrowConfig = new JdbcToArrowConfigBuilder(allocator, utcCalendar)
                     .setReuseVectorSchemaRoot(true)
                     .setJdbcToArrowTypeConverter(getReadTypeMapping(utcCalendar))
-                    .setJdbcConsumerGetter(JdbcTypeMapping.getJdbcConsumerFactory())
+                    .setJdbcConsumerGetter(getJdbcConsumerFactory())
                     .setTargetBatchSize(batchSize)
                     .build();
             jdbcToArrowConfig.setMaxBufferSize(2L * 1024 * 1024 * 1024);
@@ -126,6 +126,10 @@ public class JdbcDataSource extends DataSource {
 
     protected Function<JdbcFieldInfo, ArrowType> getReadTypeMapping(Calendar calendar) {
         return JdbcTypeMapping.getDefaultTypeMapping(calendar);
+    }
+
+    protected JdbcToArrowConfig.JdbcConsumerFactory getJdbcConsumerFactory() {
+        return JdbcTypeMapping.getJdbcConsumerFactory();
     }
 
     protected int calcBatchSize(ResultSet resultSet) throws SQLException {

@@ -41,6 +41,10 @@
             <groupId>com.oceanbase.external</groupId>
             <artifactId>external-plugin-sqlserver</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.oceanbase.external</groupId>
+            <artifactId>external-plugin-odps</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
