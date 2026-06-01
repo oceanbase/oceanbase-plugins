@@ -35,6 +35,7 @@ public class DataSourceFactory {
             put("jdbc", "com.oceanbase.external.jdbc.JdbcDataSource");
             put("mysql", "com.oceanbase.external.mysql.MysqlJdbcDataSource");
             put("sqlserver", "com.oceanbase.external.sqlserver.SqlServerJdbcDataSource");
+            put("odps", "com.oceanbase.external.odps.OdpsJdbcDataSource");
         }};
 
     public static DataSource create(Map<String, String> properties) {

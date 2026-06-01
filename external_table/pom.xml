@@ -13,6 +13,7 @@
         <module>plugin/jdbc</module>
         <module>plugin/mysql</module>
         <module>plugin/sqlserver</module>
+        <module>plugin/odps</module>
         <module>internal</module>
     </modules>
 
@@ -26,6 +27,7 @@
         <dep.adbc.version>0.14.0</dep.adbc.version>
         <dep.mysql.connector.version>8.3.0</dep.mysql.connector.version>
         <dep.sqlserver.connector.version>12.10.0.jre11</dep.sqlserver.connector.version>
+        <dep.odps.jdbc.version>3.4.0</dep.odps.jdbc.version>
         <dep.slf4j.api.version>2.0.16</dep.slf4j.api.version>
         <dep.logback.classic.version>1.3.14</dep.logback.classic.version>
         <dep.jackson.version>2.17.1</dep.jackson.version>
@@ -74,6 +76,11 @@
                 <artifactId>mssql-jdbc</artifactId>
                 <version>${dep.sqlserver.connector.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.aliyun.odps</groupId>
+                <artifactId>odps-jdbc</artifactId>
+                <version>${dep.odps.jdbc.version}</version>
+            </dependency>
 
             <!-- Logging -->
             <dependency>
@@ -106,6 +113,11 @@
             <dependency>
                 <groupId>com.oceanbase.external</groupId>
                 <artifactId>external-plugin-sqlserver</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oceanbase.external</groupId>
+                <artifactId>external-plugin-odps</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
